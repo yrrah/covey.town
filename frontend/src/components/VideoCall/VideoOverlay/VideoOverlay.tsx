@@ -36,6 +36,7 @@ interface Props {
   highlightedProfiles?: string[];
   hexColour?: string;
   preferredMode: 'sidebar' | 'fullwidth';
+  chatButton: JSX.Element;
   onPresentingChanged?(presenting: boolean): void;
 }
 
@@ -126,7 +127,7 @@ export default function VideoGrid(props: Props) {
             <ReconnectingNotification />
             <MobileTopMenuBar />
             <Room />
-            <MenuBar setMediaError={setMediaError} />
+            <MenuBar chatButton={props.chatButton} setMediaError={setMediaError} />
           </Main>
         )}
         <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />

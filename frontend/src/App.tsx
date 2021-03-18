@@ -4,7 +4,9 @@ import React, {
 import './App.css';
 import { BrowserRouter } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, Box, Grid, GridItem} from '@chakra-ui/react';
+import MenuItem from "@material-ui/core/MenuItem";
+import {Typography} from "@material-ui/core";
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import assert from 'assert';
 import WorldMap from './components/world/WorldMap';
@@ -25,6 +27,8 @@ import { Callback } from './components/VideoCall/VideoFrontend/types';
 import Player, { ServerPlayer, UserLocation } from './classes/Player';
 import TownsServiceClient, { TownJoinResponse } from './classes/TownsServiceClient';
 import Video from './classes/Video/Video';
+import ChatPanel from "./components/Chat/ChatPanel";
+
 
 type CoveyAppUpdate =
   | { action: 'doConnect'; data: { userName: string, townFriendlyName: string, townID: string,townIsPubliclyListed:boolean, sessionToken: string, myPlayerID: string, socket: Socket, players: Player[], emitMovement: (location: UserLocation) => void } }
@@ -201,6 +205,7 @@ async function GameController(initData: TownJoinResponse,
 
 function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefined>> }) {
   const [appState, dispatchAppUpdate] = useReducer(appStateReducer, defaultAppState());
+  const [chatVisible, setIsEnabled] = useState(false);
 
   const setupGameController = useCallback(async (initData: TownJoinResponse) => {
     await GameController(initData, dispatchAppUpdate);
@@ -222,13 +227,27 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
     } if (!videoInstance) {
       return <div>Loading...</div>;
     }
+    const chatButton = (
+      <MenuItem onClick={() => setIsEnabled(!chatVisible)}>
+        <Typography variant="body1">Chat {chatVisible ? <span>open</span> : <span> not open </span>}</Typography>
+      </MenuItem>)
+
     return (
-      <div>
-        <WorldMap />
-        <VideoOverlay preferredMode="fullwidth" />
-      </div>
+      <Grid height="100vh" templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
+        <GridItem colSpan={7}>
+          <Box height="100vh" display="flex" flexDirection="column">
+            <WorldMap />
+            <VideoOverlay chatButton={chatButton} preferredMode="fullwidth" />
+          </Box>
+        </GridItem>
+        {chatVisible &&
+        <GridItem colSpan={3}>
+          <ChatPanel/>
+        </GridItem>
+        }
+      </Grid>
     );
-  }, [setupGameController, appState.sessionToken, videoInstance]);
+  }, [chatVisible, setupGameController, appState.sessionToken, videoInstance]);
   return (
 
     <CoveyAppContext.Provider value={appState}>

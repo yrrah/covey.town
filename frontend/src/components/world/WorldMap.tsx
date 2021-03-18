@@ -4,6 +4,7 @@ import Player, { UserLocation } from '../../classes/Player';
 import Video from '../../classes/Video/Video';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
 
+
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
 class CoveyGameScene extends Phaser.Scene {
   private player?: {
@@ -98,12 +99,11 @@ class CoveyGameScene extends Phaser.Scene {
           .sprite(0, 0, 'atlas', 'misa-front')
           .setSize(30, 40)
           .setOffset(0, 24);
-        const label = this.add.text(0, 0, myPlayer.userName, {
+        myPlayer.label = this.add.text(0, 0, myPlayer.userName, {
           font: '18px monospace',
           color: '#000000',
           backgroundColor: '#ffffff',
         });
-        myPlayer.label = label;
         myPlayer.sprite = sprite;
       }
       if (!sprite.anims) return;
@@ -436,8 +436,12 @@ export default function WorldMap(): JSX.Element {
     const config = {
       type: Phaser.AUTO,
       parent: 'map-container',
-      minWidth: 800,
-      minHeight: 600,
+      scale: {
+        mode: Phaser.Scale.RESIZE ,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: 800,
+        height: 600
+      },
       physics: {
         default: 'arcade',
         arcade: {
