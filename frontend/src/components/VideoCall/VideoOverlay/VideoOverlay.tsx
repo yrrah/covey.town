@@ -1,13 +1,11 @@
 /* eslint-disable */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { styled, Theme } from '@material-ui/core/styles';
 
 import { Room as TwilioRoom } from 'twilio-video';
 
 import { Prompt } from 'react-router-dom';
 import Room from '../VideoFrontend/components/Room/Room';
-import MenuBar from '../VideoFrontend/components/MenuBar/MenuBar';
-import MobileTopMenuBar from '../VideoFrontend/components/MobileTopMenuBar/MobileTopMenuBar';
 import ReconnectingNotification from '../VideoFrontend/components/ReconnectingNotification/ReconnectingNotification';
 import useRoomState from '../VideoFrontend/hooks/useRoomState/useRoomState';
 import useLocalAudioToggle from '../VideoFrontend/hooks/useLocalAudioToggle/useLocalAudioToggle';
@@ -24,19 +22,20 @@ const Container = styled('div')({
 });
 
 const Main = styled('main')(({ theme: _theme }: { theme: Theme }) => ({
-  overflow: 'hidden',
-  position: 'relative',
-  paddingBottom: `${_theme.footerHeight}px`, // Leave some space for the footer
-  [_theme.breakpoints.down('sm')]: {
-    paddingBottom: `${_theme.mobileFooterHeight + _theme.mobileTopBarHeight}px`, // Leave some space for the mobile header and footer
-  },
+  // overflow: 'hidden',
+  // position: 'relative',
+  // paddingBottom: `${_theme.footerHeight}px`, // Leave some space for the footer
+  // [_theme.breakpoints.down('sm')]: {
+  //   paddingBottom: `${_theme.mobileFooterHeight + _theme.mobileTopBarHeight}px`, // Leave some space for the mobile header and footer
+  // },
 }));
 
 interface Props {
   highlightedProfiles?: string[];
   hexColour?: string;
   preferredMode: 'sidebar' | 'fullwidth';
-  chatButton: JSX.Element;
+  mediaError: Error | undefined;
+  setMediaError: Function;
   onPresentingChanged?(presenting: boolean): void;
 }
 
@@ -50,7 +49,6 @@ export default function VideoGrid(props: Props) {
   const unmountRef = useRef<() => void>();
   const unloadRef = useRef<EventListener>();
   const existingRoomRef = useRef<TwilioRoom | undefined>();
-  const [mediaError, setMediaError] = useState<Error>();
   const presenting = usePresenting();
 
   let coveyRoom = coveyController?.coveyTownID;
@@ -125,12 +123,10 @@ export default function VideoGrid(props: Props) {
         ) : (
           <Main style={{ paddingBottom: '90px' }}>
             <ReconnectingNotification />
-            <MobileTopMenuBar />
             <Room />
-            <MenuBar chatButton={props.chatButton} setMediaError={setMediaError} />
           </Main>
         )}
-        <MediaErrorSnackbar error={mediaError} dismissError={() => setMediaError(undefined)} />
+        <MediaErrorSnackbar error={props.mediaError} dismissError={() => props.setMediaError(undefined)} />
       </Container>
     </>
   );

@@ -1,8 +1,7 @@
 import React from 'react';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-
-import Button from '@material-ui/core/Button';
-import { Typography, Grid, Hidden } from '@material-ui/core';
+import { Box, Flex, Button, Grid} from "@chakra-ui/react";
+import { Typography, Hidden } from '@material-ui/core';
 import EndCallButton from '../Buttons/EndCallButton/EndCallButton';
 import FlipCameraButton from './FlipCameraButton/FlipCameraButton';
 import Menu from './Menu/Menu';
@@ -21,8 +20,8 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
     left: 0,
     right: 0,
     // height: `${theme.footerHeight}px`,
-    position: 'absolute',
-    display: 'flex',
+    // position: 'absolute',
+    // display: 'flex',
     padding: '0 1.43em',
     zIndex: 10,
     [theme.breakpoints.down('sm')]: {
@@ -66,6 +65,18 @@ export default function MenuBar(props: { chatButton: JSX.Element; setMediaError?
   const { isSharingScreen, toggleScreenShare } = useVideoContext();
   const roomState = useRoomState();
   const isReconnecting = roomState === 'reconnecting';
+  const [hamburger, setHamburger] = React.useState(false);
+  const toggleHamburger = () => setHamburger(!hamburger);
+
+// derived from https://github.com/chakra-ui/chakra-ui/issues/298
+  function MenuItem(props: { children: React.ReactNode; }):JSX.Element {
+    const {children} = props;
+    return (
+      <Box display={{ sm: hamburger ? "block" : "none", md:"block"}}>
+        {children}
+      </Box>
+    );
+  }
 
   return (
     <>
@@ -76,29 +87,39 @@ export default function MenuBar(props: { chatButton: JSX.Element; setMediaError?
         </Grid>
       )}
       <footer className={classes.container}>
-        <Grid container justify="space-around" alignItems="center">
-          <Grid item>
-            <Grid container justify="center">
-              <ToggleAudioButton disabled={isReconnecting} setMediaError={props.setMediaError} />
-              <ToggleVideoButton disabled={isReconnecting} setMediaError={props.setMediaError} />
-              <Hidden smDown>
-                {!isSharingScreen && <ToggleScreenShareButton disabled={isReconnecting} />}
-              </Hidden>
-              <FlipCameraButton />
-            </Grid>
+        <Flex as="nav" align="center">
+          <Box flex={1} display={{ md: "none" }} width="100%" padding="10px" onClick={toggleHamburger}>
+            <svg
+              fill="black"
+              width="30px"
+              height="30px"
+              viewBox="0 3 20 14"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <title>Menu</title>
+              <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
+            </svg>
+          </Box>
+          <Grid  style={{background:'white'}} alignItems="center"
+                templateColumns={{ sm: "repeat(3, 1fr)", md: "repeat(8, 1fr)" }}
+          >
+            <ToggleAudioButton disabled={isReconnecting} setMediaError={props.setMediaError} />
+            <ToggleVideoButton disabled={isReconnecting} setMediaError={props.setMediaError} />
+            <Hidden mdUp>
+              <EndCallButton />
+            </Hidden>
+            <Hidden smDown>
+              {!isSharingScreen && <ToggleScreenShareButton disabled={isReconnecting} />}
+            </Hidden>
+            <MenuItem>{props.chatButton}</MenuItem>
+            <MenuItem><TownSettings /></MenuItem>
+            <MenuItem><Menu /></MenuItem>
+            <MenuItem><FlipCameraButton /></MenuItem>
+            <Hidden smDown>
+              <EndCallButton />
+            </Hidden>
           </Grid>
-          <Hidden smDown>
-            <Grid style={{ flex: 1 }}>
-              <Grid container justify="flex-end">
-                {props.chatButton}
-                <TownSettings />
-
-                <Menu />
-                <EndCallButton />
-              </Grid>
-            </Grid>
-          </Hidden>
-        </Grid>
+        </Flex>
       </footer>
     </>
   );

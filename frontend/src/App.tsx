@@ -4,7 +4,7 @@ import React, {
 import './App.css';
 import { BrowserRouter } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
-import { ChakraProvider, Box, Grid, GridItem} from '@chakra-ui/react';
+import { ChakraProvider, Box, Grid, GridItem, Flex} from '@chakra-ui/react';
 import MenuItem from "@material-ui/core/MenuItem";
 import {Typography} from "@material-ui/core";
 import { MuiThemeProvider } from '@material-ui/core/styles';
@@ -28,6 +28,7 @@ import Player, { ServerPlayer, UserLocation } from './classes/Player';
 import TownsServiceClient, { TownJoinResponse } from './classes/TownsServiceClient';
 import Video from './classes/Video/Video';
 import ChatPanel from "./components/Chat/ChatPanel";
+import MenuBar from "./components/VideoCall/VideoFrontend/components/MenuBar/MenuBar";
 
 
 type CoveyAppUpdate =
@@ -206,6 +207,7 @@ async function GameController(initData: TownJoinResponse,
 function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefined>> }) {
   const [appState, dispatchAppUpdate] = useReducer(appStateReducer, defaultAppState());
   const [chatVisible, setIsEnabled] = useState(false);
+  const [mediaError, setMediaError] = useState<Error>();
 
   const setupGameController = useCallback(async (initData: TownJoinResponse) => {
     await GameController(initData, dispatchAppUpdate);
@@ -234,11 +236,12 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
 
     return (
       <Grid height="100vh" templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
-        <GridItem colSpan={7}>
-          <Box height="100vh" display="flex" flexDirection="column">
-            <WorldMap />
-            <VideoOverlay chatButton={chatButton} preferredMode="fullwidth" />
-          </Box>
+        <GridItem width="100%" colSpan={7}>
+          <Flex width="100%" direction="column">
+            <MenuBar chatButton={chatButton} setMediaError={setMediaError} />
+            <Box flex={1}><WorldMap /></Box>
+            <VideoOverlay mediaError={mediaError} setMediaError={setMediaError} preferredMode="fullwidth" />
+          </Flex>
         </GridItem>
         {chatVisible &&
         <GridItem colSpan={3}>
@@ -247,7 +250,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         }
       </Grid>
     );
-  }, [chatVisible, setupGameController, appState.sessionToken, videoInstance]);
+  }, [mediaError, chatVisible, setupGameController, appState.sessionToken, videoInstance]);
   return (
 
     <CoveyAppContext.Provider value={appState}>
