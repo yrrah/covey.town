@@ -60,19 +60,20 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
 }));
 
-export default function MenuBar(props: { chatButton: JSX.Element; setMediaError?(error: Error): void }) {
+export default function MenuBar(props: { chatVisible: boolean, chatButton: JSX.Element; setMediaError?(error: Error): void }) {
   const classes = useStyles();
   const { isSharingScreen, toggleScreenShare } = useVideoContext();
   const roomState = useRoomState();
   const isReconnecting = roomState === 'reconnecting';
   const [hamburger, setHamburger] = React.useState(false);
   const toggleHamburger = () => setHamburger(!hamburger);
+  const {chatVisible} = props
 
 // derived from https://github.com/chakra-ui/chakra-ui/issues/298
-  function MenuItem(props: { children: React.ReactNode; }):JSX.Element {
-    const {children} = props;
+  function MenuItem(props: { children: React.ReactNode; chatButton?: boolean }):JSX.Element {
+    const {children, chatButton} = props;
     return (
-      <Box display={{ sm: hamburger ? "block" : "none", md:"block"}}>
+      <Box display={{ sm: hamburger ? "block" : "none", md:(!chatVisible || hamburger || chatButton) ? "block" : "none"}}>
         {children}
       </Box>
     );
@@ -88,7 +89,7 @@ export default function MenuBar(props: { chatButton: JSX.Element; setMediaError?
       )}
       <footer className={classes.container}>
         <Flex as="nav" align="center">
-          <Box flex={1} display={{ md: "none" }} width="100%" padding="10px" onClick={toggleHamburger}>
+          <Box flex={1} display={{ md: chatVisible ? "block" : "none" }} width="100%" padding="10px" onClick={toggleHamburger}>
             <svg
               fill="black"
               width="30px"
@@ -101,17 +102,15 @@ export default function MenuBar(props: { chatButton: JSX.Element; setMediaError?
             </svg>
           </Box>
           <Grid  style={{background:'white'}} alignItems="center"
-                templateColumns={{ sm: "repeat(3, 1fr)", md: "repeat(8, 1fr)" }}
+                templateColumns={{ sm: "repeat(3, 1fr)", md: chatVisible ? "repeat(4, 1fr)" : "repeat(8, 1fr)" }}
           >
             <ToggleAudioButton disabled={isReconnecting} setMediaError={props.setMediaError} />
             <ToggleVideoButton disabled={isReconnecting} setMediaError={props.setMediaError} />
             <Hidden mdUp>
               <EndCallButton />
             </Hidden>
-            <Hidden smDown>
-              {!isSharingScreen && <ToggleScreenShareButton disabled={isReconnecting} />}
-            </Hidden>
-            <MenuItem>{props.chatButton}</MenuItem>
+            <MenuItem chatButton={true}>{props.chatButton}</MenuItem>
+            <MenuItem> {!isSharingScreen && <ToggleScreenShareButton disabled={isReconnecting} />}</MenuItem>
             <MenuItem><TownSettings /></MenuItem>
             <MenuItem><Menu /></MenuItem>
             <MenuItem><FlipCameraButton /></MenuItem>

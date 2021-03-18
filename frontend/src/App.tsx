@@ -238,7 +238,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       <Grid height="100vh" templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
         <GridItem width="100%" colSpan={7}>
           <Flex width="100%" direction="column">
-            <MenuBar chatButton={chatButton} setMediaError={setMediaError} />
+            <MenuBar chatVisible={chatVisible} chatButton={chatButton} setMediaError={setMediaError} />
             <Box flex={1}><WorldMap /></Box>
             <VideoOverlay mediaError={mediaError} setMediaError={setMediaError} preferredMode="fullwidth" />
           </Flex>
