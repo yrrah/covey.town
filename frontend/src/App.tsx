@@ -186,6 +186,15 @@ async function GameController(initData: TownJoinResponse,
     socket.emit('playerMovement', location);
     dispatchAppUpdate({ action: 'weMoved', location });
   };
+  // const emitMessage = (data: ChatData) => {
+  //   socket.emit('newChatMessage', data);
+  // };
+  // socket.on('newChatMessage', data){
+  //  if(filterPermissions()){
+  //  showChat()
+  //  }
+  // }
+
 
   dispatchAppUpdate({
     action: 'doConnect',
