@@ -235,13 +235,11 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
       </MenuItem>)
 
     return (
-      <Grid height="100vh" templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
-        <GridItem width="100%" colSpan={7}>
-          <Flex width="100%" direction="column">
-            <MenuBar chatVisible={chatVisible} chatButton={chatButton} setMediaError={setMediaError} />
-            <Box flex={1}><WorldMap /></Box>
-            <VideoOverlay mediaError={mediaError} setMediaError={setMediaError} preferredMode="fullwidth" />
-          </Flex>
+      <Flex wrap='wrap'>
+      <Grid width='100%' templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
+        <GridItem colSpan={7}>
+          <Box position='relative'><MenuBar chatVisible={chatVisible} chatButton={chatButton} setMediaError={setMediaError} /></Box>
+           <Box flex={1}> <WorldMap /></Box>
         </GridItem>
         {chatVisible &&
         <GridItem colSpan={3}>
@@ -249,6 +247,8 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         </GridItem>
         }
       </Grid>
+        <Box position='relative' bottom={0} height='100%' width='100%'><VideoOverlay mediaError={mediaError} setMediaError={setMediaError} preferredMode="fullwidth" /></Box>
+      </Flex>
     );
   }, [mediaError, chatVisible, setupGameController, appState.sessionToken, videoInstance]);
   return (

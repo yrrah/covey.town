@@ -14,25 +14,10 @@ import ToggleScreenShareButton from '../Buttons/ToogleScreenShareButton/ToggleSc
 import TownSettings from '../../../../Login/TownSettings';
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
-  container: {
-    backgroundColor: theme.palette.background.default,
-    bottom: 20,
-    left: 0,
-    right: 0,
-    // height: `${theme.footerHeight}px`,
-    // position: 'absolute',
-    // display: 'flex',
-    padding: '0 1.43em',
-    zIndex: 10,
-    [theme.breakpoints.down('sm')]: {
-      height: `${theme.mobileFooterHeight}px`,
-      padding: 0,
-    },
-  },
   screenShareBanner: {
-    position: 'absolute',
+    position: 'fixed',
     zIndex: 10,
-    bottom: `${theme.footerHeight}px`,
+    bottom: 0,
     left: 0,
     right: 0,
     height: '104px',
@@ -87,10 +72,10 @@ export default function MenuBar(props: { chatVisible: boolean, chatButton: JSX.E
           <Button onClick={() => toggleScreenShare()}>Stop Sharing</Button>
         </Grid>
       )}
-      <footer className={classes.container}>
-        <Flex as="nav" align="center">
-          <Box flex={1} display={{ md: chatVisible ? "block" : "none" }} width="100%" padding="10px" onClick={toggleHamburger}>
+        <Flex as="nav" align="center" style={{padding: '0 1.43em'}}>
+          <Box flex={1}  display={{ md: chatVisible ? "block" : "none" }} width="100%" padding="10px" onClick={toggleHamburger}>
             <svg
+              style={{position:'relative', top: '5px', left:'10px'}}
               fill="black"
               width="30px"
               height="30px"
@@ -110,16 +95,16 @@ export default function MenuBar(props: { chatVisible: boolean, chatButton: JSX.E
               <EndCallButton />
             </Hidden>
             <MenuItem chatButton={true}>{props.chatButton}</MenuItem>
-            <MenuItem> {!isSharingScreen && <ToggleScreenShareButton disabled={isReconnecting} />}</MenuItem>
+             {!isSharingScreen && <MenuItem><ToggleScreenShareButton disabled={isReconnecting} /></MenuItem>}
             <MenuItem><TownSettings /></MenuItem>
             <MenuItem><Menu /></MenuItem>
             <MenuItem><FlipCameraButton /></MenuItem>
+            {isSharingScreen && <MenuItem>&nbsp;</MenuItem>}
             <Hidden smDown>
               <EndCallButton />
             </Hidden>
           </Grid>
         </Flex>
-      </footer>
     </>
   );
 }

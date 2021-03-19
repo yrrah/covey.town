@@ -22,12 +22,8 @@ const Container = styled('div')({
 });
 
 const Main = styled('main')(({ theme: _theme }: { theme: Theme }) => ({
-  // overflow: 'hidden',
+  overflow: 'hidden',
   // position: 'relative',
-  // paddingBottom: `${_theme.footerHeight}px`, // Leave some space for the footer
-  // [_theme.breakpoints.down('sm')]: {
-  //   paddingBottom: `${_theme.mobileFooterHeight + _theme.mobileTopBarHeight}px`, // Leave some space for the mobile header and footer
-  // },
 }));
 
 interface Props {
@@ -121,7 +117,7 @@ export default function VideoGrid(props: Props) {
         // <PreJoinScreens room={{id: coveyRoom, twilioID: coveyRoom}} setMediaError={setMediaError} />
           <div>Error</div>
         ) : (
-          <Main style={{ paddingBottom: '90px' }}>
+          <Main>
             <ReconnectingNotification />
             <Room />
           </Main>
