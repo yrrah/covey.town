@@ -3,6 +3,7 @@ import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
 
 export type CoveyEvent = 'playerMoved' | 'playerAdded' | 'playerRemoved';
+export type ChatType = 'public' | 'proximity' | 'private';
 
 export type VideoRoom = {
   twilioID: string,
@@ -28,4 +29,12 @@ export type CoveyAppState = {
   emitMovement: (location: UserLocation) => void,
   socket: Socket | null,
   apiClient: TownsServiceClient,
+};
+
+export type ChatData = {
+  message: string;
+  timestamp: Date,
+  sendingPlayer: { id: string, userName: string },
+  receivingPlayerID?: { playerID: string } [],
+  chatType: ChatType
 };

@@ -11,7 +11,7 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import assert from 'assert';
 import WorldMap from './components/world/WorldMap';
 import VideoOverlay from './components/VideoCall/VideoOverlay/VideoOverlay';
-import { CoveyAppState, NearbyPlayers } from './CoveyTypes';
+import { ChatData, CoveyAppState, NearbyPlayers } from './CoveyTypes';
 import VideoContext from './contexts/VideoContext';
 import Login from './components/Login/Login';
 import CoveyAppContext from './contexts/CoveyAppContext';
@@ -152,6 +152,16 @@ function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyApp
   return nextState;
 }
 
+function filterPermissions(data: ChatData, gamePlayerID:string) {
+  if (data.chatType === 'public') {
+    return true;
+  }
+  if(data.receivingPlayerID?.some(player => player.playerID === gamePlayerID)) {
+    return true;
+  }
+  return false;
+}
+
 async function GameController(initData: TownJoinResponse,
   dispatchAppUpdate: (update: CoveyAppUpdate) => void) {
   // Now, set up the game sockets
@@ -186,14 +196,16 @@ async function GameController(initData: TownJoinResponse,
     socket.emit('playerMovement', location);
     dispatchAppUpdate({ action: 'weMoved', location });
   };
-  // const emitMessage = (data: ChatData) => {
-  //   socket.emit('newChatMessage', data);
-  // };
-  // socket.on('newChatMessage', data){
-  //  if(filterPermissions()){
-  //  showChat()
-  //  }
-  // }
+  const emitMessage = (data: ChatData) => {
+    socket.emit('newChatMessage', data);
+  };
+  socket.on('newChatMessage', (data: ChatData) => {
+    if(filterPermissions(data, gamePlayerID)) {
+      // showChat(data, gamePlayerID);
+    }
+  });
+  
+  
 
 
   dispatchAppUpdate({
