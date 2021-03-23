@@ -1,5 +1,5 @@
 import { customAlphabet, nanoid } from 'nanoid';
-import { UserLocation } from '../CoveyTypes';
+import { ChatData, UserLocation } from '../CoveyTypes';
 import CoveyTownListener from '../types/CoveyTownListener';
 import Player from '../types/Player';
 import PlayerSession from '../types/PlayerSession';
@@ -16,6 +16,7 @@ export default class CoveyTownController {
   get capacity(): number {
     return this._capacity;
   }
+
   set isPubliclyListed(value: boolean) {
     this._isPubliclyListed = value;
   }
@@ -118,6 +119,14 @@ export default class CoveyTownController {
   updatePlayerLocation(player: Player, location: UserLocation): void {
     player.updateLocation(location);
     this._listeners.forEach((listener) => listener.onPlayerMoved(player));
+  }
+
+  /**
+   * Send chat data to all the listeners subscribed to the room
+   * @param data ChatData to be sent to all players in the room
+   */
+  sendChatMessage(data: ChatData): void {
+    this._listeners.forEach((listener) => listener.onMessageSent(data));
   }
 
   /**

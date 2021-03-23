@@ -1,3 +1,4 @@
+import { ChatData } from '../CoveyTypes';
 import Player from './Player';
 
 /**
@@ -26,4 +27,9 @@ export default interface CoveyTownListener {
    * Called when a town is destroyed, causing all players to disconnect
    */
   onTownDestroyed(): void;
+  
+  /**
+   * Called when a message is sent by a player
+   */
+  onMessageSent(chatData: ChatData): void;
 }
