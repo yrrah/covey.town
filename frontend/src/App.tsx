@@ -1,19 +1,19 @@
 import React, {
-  Dispatch, SetStateAction, useCallback, useEffect, useMemo, useReducer, useState,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState
 } from 'react';
 import './App.css';
 import { BrowserRouter } from 'react-router-dom';
-import { io, Socket } from 'socket.io-client';
-import { ChakraProvider, Box, Grid, GridItem, Flex} from '@chakra-ui/react';
-import MenuItem from "@material-ui/core/MenuItem";
-import {Typography} from "@material-ui/core";
+import { ChakraProvider} from '@chakra-ui/react';
 import { MuiThemeProvider } from '@material-ui/core/styles';
-import assert from 'assert';
-import WorldMap from './components/world/WorldMap';
-import VideoOverlay from './components/VideoCall/VideoOverlay/VideoOverlay';
-import { ChatData, CoveyAppState, NearbyPlayers } from './CoveyTypes';
+import assert from "assert";
+import { io } from "socket.io-client";
 import VideoContext from './contexts/VideoContext';
-import Login from './components/Login/Login';
 import CoveyAppContext from './contexts/CoveyAppContext';
 import NearbyPlayersContext from './contexts/NearbyPlayersContext';
 import AppStateProvider, { useAppState } from './components/VideoCall/VideoFrontend/state';
@@ -24,146 +24,19 @@ import { VideoProvider } from './components/VideoCall/VideoFrontend/components/V
 import ErrorDialog from './components/VideoCall/VideoFrontend/components/ErrorDialog/ErrorDialog';
 import theme from './components/VideoCall/VideoFrontend/theme';
 import { Callback } from './components/VideoCall/VideoFrontend/types';
-import Player, { ServerPlayer, UserLocation } from './classes/Player';
-import TownsServiceClient, { TownJoinResponse } from './classes/TownsServiceClient';
 import Video from './classes/Video/Video';
-import ChatPanel from "./components/Chat/ChatPanel";
-import MenuBar from "./components/VideoCall/VideoFrontend/components/MenuBar/MenuBar";
+import { appStateReducer, defaultAppState } from "./components/Town/TownLogic";
+import TownPage from "./components/Town/TownPage";
+import { TownJoinResponse } from "./classes/TownsServiceClient";
+import Login from "./components/Login/Login";
+import { chatStateReducer, defaultChatState } from "./components/Chat/ChatLogic";
+import {ChatData, ChatUpdate, CoveyAppUpdate} from "./CoveyTypes";
 
-
-type CoveyAppUpdate =
-  | { action: 'doConnect'; data: { userName: string, townFriendlyName: string, townID: string,townIsPubliclyListed:boolean, sessionToken: string, myPlayerID: string, socket: Socket, players: Player[], emitMovement: (location: UserLocation) => void } }
-  | { action: 'addPlayer'; player: Player }
-  | { action: 'playerMoved'; player: Player }
-  | { action: 'playerDisconnect'; player: Player }
-  | { action: 'weMoved'; location: UserLocation }
-  | { action: 'disconnect' }
-  ;
-
-function defaultAppState(): CoveyAppState {
-  return {
-    nearbyPlayers: { nearbyPlayers: [] },
-    players: [],
-    myPlayerID: '',
-    currentTownFriendlyName: '',
-    currentTownID: '',
-    currentTownIsPubliclyListed: false,
-    sessionToken: '',
-    userName: '',
-    socket: null,
-    currentLocation: {
-      x: 0, y: 0, rotation: 'front', moving: false,
-    },
-    emitMovement: () => {
-    },
-    apiClient: new TownsServiceClient(),
-  };
-}
-function appStateReducer(state: CoveyAppState, update: CoveyAppUpdate): CoveyAppState {
-  const nextState = {
-    sessionToken: state.sessionToken,
-    currentTownFriendlyName: state.currentTownFriendlyName,
-    currentTownID: state.currentTownID,
-    currentTownIsPubliclyListed: state.currentTownIsPubliclyListed,
-    myPlayerID: state.myPlayerID,
-    players: state.players,
-    currentLocation: state.currentLocation,
-    nearbyPlayers: state.nearbyPlayers,
-    userName: state.userName,
-    socket: state.socket,
-    emitMovement: state.emitMovement,
-    apiClient: state.apiClient,
-  };
-
-  function calculateNearbyPlayers(players: Player[], currentLocation: UserLocation) {
-    const isWithinCallRadius = (p: Player, location: UserLocation) => {
-      if (p.location && location) {
-        const dx = p.location.x - location.x;
-        const dy = p.location.y - location.y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        return d < 80;
-      }
-      return false;
-    };
-    return { nearbyPlayers: players.filter((p) => isWithinCallRadius(p, currentLocation)) };
-  }
-
-  function samePlayers(a1: NearbyPlayers, a2: NearbyPlayers) {
-    if (a1.nearbyPlayers.length !== a2.nearbyPlayers.length) return false;
-    const ids1 = a1.nearbyPlayers.map((p) => p.id).sort();
-    const ids2 = a2.nearbyPlayers.map((p) => p.id).sort();
-    return !ids1.some((val, idx) => val !== ids2[idx]);
-  }
-
-  let updatePlayer;
-  switch (update.action) {
-    case 'doConnect':
-      nextState.sessionToken = update.data.sessionToken;
-      nextState.myPlayerID = update.data.myPlayerID;
-      nextState.currentTownFriendlyName = update.data.townFriendlyName;
-      nextState.currentTownID = update.data.townID;
-      nextState.currentTownIsPubliclyListed = update.data.townIsPubliclyListed;
-      nextState.userName = update.data.userName;
-      nextState.emitMovement = update.data.emitMovement;
-      nextState.socket = update.data.socket;
-      nextState.players = update.data.players;
-      break;
-    case 'addPlayer':
-      nextState.players = nextState.players.concat([update.player]);
-      break;
-    case 'playerMoved':
-      updatePlayer = nextState.players.find((p) => p.id === update.player.id);
-      if (updatePlayer) {
-        updatePlayer.location = update.player.location;
-      } else {
-        nextState.players = nextState.players.concat([update.player]);
-      }
-      nextState.nearbyPlayers = calculateNearbyPlayers(nextState.players,
-        nextState.currentLocation);
-      if (samePlayers(nextState.nearbyPlayers, state.nearbyPlayers)) {
-        nextState.nearbyPlayers = state.nearbyPlayers;
-      }
-      break;
-    case 'weMoved':
-      nextState.currentLocation = update.location;
-      nextState.nearbyPlayers = calculateNearbyPlayers(nextState.players,
-        nextState.currentLocation);
-      if (samePlayers(nextState.nearbyPlayers, state.nearbyPlayers)) {
-        nextState.nearbyPlayers = state.nearbyPlayers;
-      }
-
-      break;
-    case 'playerDisconnect':
-      nextState.players = nextState.players.filter((player) => player.id !== update.player.id);
-
-      nextState.nearbyPlayers = calculateNearbyPlayers(nextState.players,
-        nextState.currentLocation);
-      if (samePlayers(nextState.nearbyPlayers, state.nearbyPlayers)) {
-        nextState.nearbyPlayers = state.nearbyPlayers;
-      }
-      break;
-    case 'disconnect':
-      state.socket?.disconnect();
-      return defaultAppState();
-    default:
-      throw new Error('Unexpected state request');
-  }
-
-  return nextState;
-}
-
-function filterPermissions(data: ChatData, gamePlayerID:string) {
-  if (data.chatType === 'public') {
-    return true;
-  }
-  if(data.receivingPlayerID?.some(player => player.playerID === gamePlayerID)) {
-    return true;
-  }
-  return false;
-}
+import Player, {ServerPlayer, UserLocation} from "./classes/Player";
 
 async function GameController(initData: TownJoinResponse,
-  dispatchAppUpdate: (update: CoveyAppUpdate) => void) {
+                                     dispatchAppUpdate: (update: CoveyAppUpdate) => void,
+                                     updateChat: (message: ChatUpdate) => void):Promise<boolean>{
   // Now, set up the game sockets
   const gamePlayerID = initData.coveyUserID;
   const sessionToken = initData.coveySessionToken;
@@ -190,23 +63,35 @@ async function GameController(initData: TownJoinResponse,
     dispatchAppUpdate({ action: 'playerDisconnect', player: Player.fromServerPlayer(player) });
   });
   socket.on('disconnect', () => {
-    dispatchAppUpdate({ action: 'disconnect' });
+    dispatchAppUpdate({action: 'disconnect'});
+    updateChat({action: 'disconnect'});
   });
   const emitMovement = (location: UserLocation) => {
     socket.emit('playerMovement', location);
     dispatchAppUpdate({ action: 'weMoved', location });
   };
-  const emitMessage = (data: ChatData) => {
+  const emitChat = (data: ChatData) => {
     socket.emit('newChatMessage', data);
   };
   socket.on('newChatMessage', (data: ChatData) => {
-    if(filterPermissions(data, gamePlayerID)) {
-      // showChat(data, gamePlayerID);
-    }
+    updateChat({
+      action: 'receiveMessage',
+      data,
+    });
   });
-  
-  
 
+  updateChat({
+    action: 'initChat',
+    myPlayerID: gamePlayerID,
+    chats: [{
+      message: `Connected to town ${roomName} (${video.coveyTownID})`,
+      timestamp: new Date(),
+      sendingPlayer: {id: '0', userName:'Server Message'},
+      receivingPlayerID: [{ playerID: gamePlayerID }],
+      chatType: 'private'
+    }],
+    emitChat,
+  });
 
   dispatchAppUpdate({
     action: 'doConnect',
@@ -227,16 +112,9 @@ async function GameController(initData: TownJoinResponse,
 
 function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefined>> }) {
   const [appState, dispatchAppUpdate] = useReducer(appStateReducer, defaultAppState());
-  const [chatVisible, setIsEnabled] = useState(false);
-  const [mediaError, setMediaError] = useState<Error>();
-
-  const setupGameController = useCallback(async (initData: TownJoinResponse) => {
-    await GameController(initData, dispatchAppUpdate);
-    return true;
-  }, [dispatchAppUpdate]);
-  const videoInstance = Video.instance();
-
+  const [chatState, updateChatState] = useReducer(chatStateReducer, defaultChatState());
   const { setOnDisconnect } = props;
+
   useEffect(() => {
     setOnDisconnect(() => async () => { // Here's a great gotcha: https://medium.com/swlh/how-to-store-a-function-with-the-usestate-hook-in-react-8a88dd4eede1
       dispatchAppUpdate({ action: 'disconnect' });
@@ -244,36 +122,23 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
     });
   }, [dispatchAppUpdate, setOnDisconnect]);
 
+  const setupGameController = useCallback(async (initData: TownJoinResponse) => {
+    await GameController(initData, dispatchAppUpdate, updateChatState);
+    return true;
+  }, [dispatchAppUpdate]);
+  const videoInstance = Video.instance();
+
   const page = useMemo(() => {
     if (!appState.sessionToken) {
-      return <Login doLogin={setupGameController} />;
-    } if (!videoInstance) {
+      return <Login doLogin={setupGameController}/>;
+    }
+    if (!videoInstance) {
       return <div>Loading...</div>;
     }
-    const chatButton = (
-      <MenuItem onClick={() => setIsEnabled(!chatVisible)}>
-        <Typography variant="body1">Chat {chatVisible ? <span>open</span> : <span> not open </span>}</Typography>
-      </MenuItem>)
+    return  <TownPage chatState={chatState} updateChatState={updateChatState} />
+  }, [ chatState, setupGameController, appState.sessionToken, videoInstance ]);
 
-    return (
-      <Flex wrap='wrap'>
-      <Grid width='100%' templateColumns={chatVisible ? "repeat(10, 1fr)" : "repeat(7, 1fr)"}>
-        <GridItem colSpan={7}>
-          <Box position='relative'><MenuBar chatVisible={chatVisible} chatButton={chatButton} setMediaError={setMediaError} /></Box>
-           <Box flex={1}> <WorldMap /></Box>
-        </GridItem>
-        {chatVisible &&
-        <GridItem colSpan={3}>
-          <ChatPanel/>
-        </GridItem>
-        }
-      </Grid>
-        <Box position='relative' bottom={0} height='100%' width='100%'><VideoOverlay mediaError={mediaError} setMediaError={setMediaError} preferredMode="fullwidth" /></Box>
-      </Flex>
-    );
-  }, [mediaError, chatVisible, setupGameController, appState.sessionToken, videoInstance]);
   return (
-
     <CoveyAppContext.Provider value={appState}>
       <VideoContext.Provider value={Video.instance()}>
         <NearbyPlayersContext.Provider value={appState.nearbyPlayers}>
@@ -281,7 +146,6 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         </NearbyPlayersContext.Provider>
       </VideoContext.Provider>
     </CoveyAppContext.Provider>
-
   );
 }
 

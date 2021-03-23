@@ -1,5 +1,4 @@
-import React from 'react';
-
+import React, {useState} from 'react';
 import {
   Button,
   Select,
@@ -8,10 +7,28 @@ import {
   Box,
   Input
 } from '@chakra-ui/react';
+import useCoveyAppState from "../../hooks/useCoveyAppState";
+import {ChatState, ChatUpdate} from "../../CoveyTypes";
+import ChatList from "./ChatList";
 
 
-const ChatPanel: React.FunctionComponent = () => {
-  const someText = "Placeholder text";
+function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }):JSX.Element {
+  const [chatInput, setChatInput] = useState('');
+  const {userName, myPlayerID} = useCoveyAppState();
+  const { chatState, updateChatState } = props;
+
+  function sendMessage() {
+    updateChatState({
+      action: 'sendMessage',
+      data: {
+        message: chatInput,
+        timestamp: new Date(),
+        sendingPlayer: {id: myPlayerID, userName},
+        // receivingPlayerID?: { playerID: string } [],
+        chatType: 'public'
+        }
+    })
+  }
 
   return <Flex bg='lightgrey' direction='column' height='100%'>
     <Flex justify='flex-end'>
@@ -20,14 +37,20 @@ const ChatPanel: React.FunctionComponent = () => {
       </Button>
     </Flex>
     <Box bg='white' flex={1} m={2}>
-      <span>{someText}</span>
+      <ChatList chatState={chatState} />
     </Box>
-    <Select variant="filled" placeholder="Player List" />
+    <Select variant="filled" placeholder="Player List">
+      {/* {players.map(player => ( */}
+      {/*  <option value="option1">Option 1</option> */}
+      {/* ))} */}
+    </Select>
     <Select variant="filled" placeholder="Chat Mode" />
     <Flex direction='row'>
-      <Input placeholder="Basic usage" />
+      <Input placeholder="Chat input"
+             value={chatInput}
+             onChange={event => setChatInput(event.target.value)}  />
       <Spacer flex={1} />
-      <Button color="blue">Send</Button>
+      <Button onClick={ () => sendMessage } color="blue">Send</Button>
     </Flex>
   </Flex>
 }
