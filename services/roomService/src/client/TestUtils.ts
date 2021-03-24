@@ -4,7 +4,8 @@ import {Socket as ServerSocket} from 'socket.io';
 
 import {AddressInfo} from 'net';
 import http from 'http';
-import { UserLocation } from '../CoveyTypes';
+import { ChatData, UserLocation } from '../CoveyTypes';
+import { nanoid } from 'nanoid';
 
 export type RemoteServerPlayer = {
   location: UserLocation, _userName: string, _id: string
@@ -26,6 +27,14 @@ export function cleanupSockets() : void {
   }
 }
 
+export function generateTestMessage(): ChatData {
+  return {
+    message: nanoid(),
+    timestamp: new Date(),
+    sendingPlayer: { id: nanoid(), userName: 'username' }, 
+    chatType: 'public',
+  };
+}
 /**
  * A handy test helper that will create a socket client that is properly configured to connect to the testing server.
  * This function also creates promises that will be resolved only once the socket is connected/disconnected/a player moved/
@@ -42,6 +51,7 @@ export function createSocketClient(server: http.Server, sessionToken: string, co
   socket: Socket,
   socketConnected: Promise<void>,
   socketDisconnected: Promise<void>,
+  socketMessageSent: Promise<ChatData>,
   playerMoved: Promise<RemoteServerPlayer>,
   newPlayerJoined: Promise<RemoteServerPlayer>,
   playerDisconnected: Promise<RemoteServerPlayer>,
@@ -59,6 +69,11 @@ export function createSocketClient(server: http.Server, sessionToken: string, co
   const disconnectPromise = new Promise<void>((resolve) => {
     socket.on('disconnect', () => {
       resolve();
+    });
+  });
+  const messagePromise = new Promise<ChatData>((resolve) => {
+    socket.on('newChatMessage', (data: ChatData) => {
+      resolve(data);
     });
   });
   const playerMovedPromise = new Promise<RemoteServerPlayer>((resolve) => {
@@ -81,6 +96,7 @@ export function createSocketClient(server: http.Server, sessionToken: string, co
     socket,
     socketConnected: connectPromise,
     socketDisconnected: disconnectPromise,
+    socketMessageSent: messagePromise,
     playerMoved: playerMovedPromise,
     newPlayerJoined: newPlayerPromise,
     playerDisconnected: playerDisconnectPromise,

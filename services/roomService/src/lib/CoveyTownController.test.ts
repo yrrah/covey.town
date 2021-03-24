@@ -5,11 +5,12 @@ import TwilioVideo from './TwilioVideo';
 import Player from '../types/Player';
 import CoveyTownController from './CoveyTownController';
 import CoveyTownListener from '../types/CoveyTownListener';
-import {UserLocation} from '../CoveyTypes';
+import {ChatData, UserLocation} from '../CoveyTypes';
 import PlayerSession from '../types/PlayerSession';
 import {townSubscriptionHandler} from '../requestHandlers/CoveyTownRequestHandlers';
 import CoveyTownsStore from './CoveyTownsStore';
 import * as TestUtils from '../client/TestUtils';
+import { generateTestMessage } from '../client/TestUtils';
 
 jest.mock('./TwilioVideo');
 
@@ -67,6 +68,14 @@ describe('CoveyTownController', () => {
       testingTown.updatePlayerLocation(player, newLocation);
       mockListeners.forEach(listener => expect(listener.onPlayerMoved).toBeCalledWith(player));
     });
+    it('should notify added listeners when a new message is sent', async () => {
+      const player = new Player('test player');
+      await testingTown.addPlayer(player);
+      const testMessage = generateTestMessage();
+      mockListeners.forEach(listener => testingTown.addTownListener(listener));
+      testingTown.sendChatMessage(testMessage);
+      mockListeners.forEach(listener => expect(listener.onMessageSent).toBeCalledWith(testMessage));
+    });
     it('should notify added listeners of player disconnections when destroySession is called', async () => {
       const player = new Player('test player');
       const session = await testingTown.addPlayer(player);
@@ -101,6 +110,16 @@ describe('CoveyTownController', () => {
       const listenerRemoved = mockListeners[1];
       testingTown.removeTownListener(listenerRemoved);
       testingTown.updatePlayerLocation(player, newLocation);
+      expect(listenerRemoved.onPlayerMoved).not.toBeCalled();
+    });
+    it('should not notify removed listeners when a new message is sent', async () => {
+      const player = new Player('test player');
+      await testingTown.addPlayer(player);
+      mockListeners.forEach(listener => testingTown.addTownListener(listener));
+      const testMessage = generateTestMessage();
+      const listenerRemoved = mockListeners[1];
+      testingTown.removeTownListener(listenerRemoved);
+      testingTown.sendChatMessage(testMessage);
       expect(listenerRemoved.onPlayerMoved).not.toBeCalled();
     });
     it('should not notify removed listeners of player disconnections when destroySession is called', async () => {
@@ -173,6 +192,14 @@ describe('CoveyTownController', () => {
         expect(mockSocket.emit).toBeCalledWith('playerMoved', player);
 
       });
+      it('should add a town listener, which should emit "newChatMessage" to the socket when a player sends a message', async () => {
+        TestUtils.setSessionTokenAndTownID(testingTown.coveyTownID, session.sessionToken, mockSocket);
+        townSubscriptionHandler(mockSocket);
+        const chatData = generateTestMessage();
+        testingTown.sendChatMessage(chatData);
+        expect(mockSocket.emit).toBeCalledWith('newChatMessage', chatData);
+
+      });
       it('should add a town listener, which should emit "playerDisconnect" to the socket when a player disconnects', async () => {
         TestUtils.setSessionTokenAndTownID(testingTown.coveyTownID, session.sessionToken, mockSocket);
         townSubscriptionHandler(mockSocket);
@@ -234,6 +261,21 @@ describe('CoveyTownController', () => {
           expect(mockListener.onPlayerMoved).toHaveBeenCalledWith(player);
         } else {
           fail('No playerMovement handler registered');
+        }
+      });
+      it('should forward playerMessage events from the socket to subscribed listeners', async () => {
+        TestUtils.setSessionTokenAndTownID(testingTown.coveyTownID, session.sessionToken, mockSocket);
+        townSubscriptionHandler(mockSocket);
+        const mockListener = mock<CoveyTownListener>();
+        testingTown.addTownListener(mockListener);
+        // find the 'newChatMessage' event handler for the socket, which should have been registered after the socket was connected
+        const playerChatHandler = mockSocket.on.mock.calls.find(call => call[0] === 'newChatMessage');
+        if (playerChatHandler && playerChatHandler[1]) {
+          const testChatData = generateTestMessage();
+          playerChatHandler[1](testChatData);
+          expect(mockListener.onMessageSent).toHaveBeenCalledWith(testChatData);
+        } else {
+          fail('No playerChat handler registered');
         }
       });
     });

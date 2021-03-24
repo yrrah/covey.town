@@ -3,13 +3,13 @@ import CORS from 'cors';
 import http from 'http';
 import { nanoid } from 'nanoid';
 import { AddressInfo } from 'net';
-import { promisify } from 'util';
 import io from 'socket.io';
 import * as TestUtils from './TestUtils';
 
-import { UserLocation } from '../CoveyTypes';
+import { ChatData, UserLocation } from '../CoveyTypes';
 import TownsServiceClient from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
+import { generateTestMessage } from './TestUtils';
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -79,6 +79,22 @@ describe('TownServiceApiSocket', () => {
     const [movedPlayer, otherMovedPlayer]= await Promise.all([playerMoved, playerMoved2]);
     expect(movedPlayer.location).toMatchObject(newLocation);
     expect(otherMovedPlayer.location).toMatchObject(newLocation);
+  });
+  it('Dispatches message updates to all clients in the same town', async () => {
+    const town = await createTownForTesting();
+    const joinData = await apiClient.joinTown({coveyTownID: town.coveyTownID, userName: nanoid()});
+    const joinData2 = await apiClient.joinTown({coveyTownID: town.coveyTownID, userName: nanoid()});
+    const joinData3 = await apiClient.joinTown({coveyTownID: town.coveyTownID, userName: nanoid()});
+    const socketSender = TestUtils.createSocketClient(server, joinData.coveySessionToken, town.coveyTownID).socket;
+    const {socketMessageSent: messageSent2} = TestUtils.createSocketClient(server, joinData2.coveySessionToken, town.coveyTownID);
+    const {socketMessageSent: messageSent3} = TestUtils.createSocketClient(server, joinData3.coveySessionToken, town.coveyTownID);
+    const testChatData = generateTestMessage();
+    socketSender.emit('newChatMessage', testChatData);
+    const [messagePromise2, messagePromise3]= await Promise.all([messageSent2, messageSent3]);
+    expect(messagePromise2.sendingPlayer.id).toMatch(testChatData.sendingPlayer.id);
+    expect(messagePromise2.message).toMatch(testChatData.message);
+    expect(messagePromise3.sendingPlayer.id).toMatch(testChatData.sendingPlayer.id);
+    expect(messagePromise3.message).toMatch(testChatData.message);
   });
   it('Invalidates the user session after disconnection', async () => {
     // This test will timeout if it fails - it will never reach the expectation
