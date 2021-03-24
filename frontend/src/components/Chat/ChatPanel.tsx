@@ -39,18 +39,18 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     <Box bg='white' flex={1} m={2}>
       <ChatList chatState={chatState} />
     </Box>
-    <Select variant="filled" placeholder="Player List">
+    <Select data-testid="playerList" variant="filled" placeholder="Player List">
       {/* {players.map(player => ( */}
       {/*  <option value="option1">Option 1</option> */}
       {/* ))} */}
     </Select>
-    <Select variant="filled" placeholder="Chat Mode" />
+    <Select data-testid="chatMode" variant="filled" placeholder="Chat Mode" />
     <Flex direction='row'>
-      <Input placeholder="Chat input"
+      <Input data-testid="chatInput" placeholder="Chat input"
              value={chatInput}
              onChange={event => setChatInput(event.target.value)}  />
       <Spacer flex={1} />
-      <Button onClick={ () => sendMessage } color="blue">Send</Button>
+      <Button data-testid="sendChat" onClick={ () => sendMessage } color="blue">Send</Button>
     </Flex>
   </Flex>
 }
