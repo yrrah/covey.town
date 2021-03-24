@@ -120,7 +120,7 @@ describe('CoveyTownController', () => {
       const listenerRemoved = mockListeners[1];
       testingTown.removeTownListener(listenerRemoved);
       testingTown.sendChatMessage(testMessage);
-      expect(listenerRemoved.onPlayerMoved).not.toBeCalled();
+      expect(listenerRemoved.onMessageSent).not.toBeCalled();
     });
     it('should not notify removed listeners of player disconnections when destroySession is called', async () => {
       const player = new Player('test player');
