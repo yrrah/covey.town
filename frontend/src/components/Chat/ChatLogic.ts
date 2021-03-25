@@ -11,7 +11,7 @@ export function defaultChatState(): ChatState {
 export function chatStateReducer(state: ChatState, update:ChatUpdate): ChatState {
 
   const nextState = {
-    chats: {...state.chats},
+    chats: state.chats,
     myPlayerID: state.myPlayerID,
     emitChat: state.emitChat,
   };
@@ -37,7 +37,9 @@ export function chatStateReducer(state: ChatState, update:ChatUpdate): ChatState
       break;
     case 'receiveMessage':
       if(filterPermissions(update.data)) {
-        nextState.chats.push(update.data)
+        const newChat = update.data;
+        newChat.timestamp = new Date(update.data.timestamp);
+        nextState.chats = [...nextState.chats, newChat];
       }
       break;
     case 'disconnect':

@@ -50,7 +50,7 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
              value={chatInput}
              onChange={event => setChatInput(event.target.value)}  />
       <Spacer flex={1} />
-      <Button data-testid="sendChat" onClick={ () => sendMessage } color="blue">Send</Button>
+      <Button data-testid="sendChat" onClick={ () => sendMessage() } color="blue">Send</Button>
     </Flex>
   </Flex>
 }
