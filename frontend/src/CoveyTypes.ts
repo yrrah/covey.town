@@ -43,6 +43,11 @@ export type ChatState = {
   myPlayerID: string;
   emitChat: (chat: ChatData) => void,
 };
+
+export type ReceivingPlayerID = {
+  playerID: string
+};
+
 export type ChatUpdate =
   | { action: 'receiveMessage'; data: ChatData }
   | { action: 'sendMessage'; data: ChatData }
@@ -53,6 +58,6 @@ export type ChatData = {
   message: string;
   timestamp: Date,
   sendingPlayer: { id: string, userName: string },
-  receivingPlayerID?: { playerID: string } [],
+  receivingPlayerID?: ReceivingPlayerID [],
   chatType: ChatType
 };
