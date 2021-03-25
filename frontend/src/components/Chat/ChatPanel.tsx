@@ -5,8 +5,7 @@ import {
   Flex,
   Spacer,
   Box,
-  Input,
-  useToast
+  Input
 } from '@chakra-ui/react';
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTypes";
@@ -19,9 +18,15 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   const [receivingPlayerID, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
   const [chatMode, setChatMode] = useState<ChatType>('public');
   const playersList = players.filter((player) => player.id !== myPlayerID);
-  const toast = useToast();
 
   function sendMessage() {
+    if(chatMode === 'proximity') {
+      const proximityPlayerList: ReceivingPlayerID[] = [];
+      nearbyPlayers.nearbyPlayers.forEach(player => {
+        proximityPlayerList.push({ playerID: player.id } as ReceivingPlayerID);
+      });
+      addReceivingPlayers(proximityPlayerList);
+    }
     updateChatState({
       action: 'sendMessage',
       data: {
@@ -36,45 +41,17 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   
   function handleChangeList(item: string) {
     if(item === 'Proximity Chat') {
-      const proximityPlayerList: ReceivingPlayerID[] = [];
-      nearbyPlayers.nearbyPlayers.forEach(player => {
-        proximityPlayerList.push({ playerID: player.id } as ReceivingPlayerID);
-      });
-      let test = "";
-      proximityPlayerList.forEach(player => {
-          const proximityPlayer = players.find((all) => all.id === player.playerID);
-          if (proximityPlayer) {
-            test = test.concat(proximityPlayer.userName);
-            test = test.concat(" ");
-          }
-      });
-      toast({
-        title: 'Proximity Chat Selected',
-        description: test,
-        status: 'success',
-      });
-      addReceivingPlayers(proximityPlayerList);
       setChatMode('proximity' as ChatType);
     }
     else if(item === 'Everyone') {
-      addReceivingPlayers(undefined);
-      toast({
-        title: 'Public Chat Selected',
-        description: item,
-        status: 'success',
-      });
       setChatMode('public' as ChatType);
+      addReceivingPlayers(undefined);
     }
     else {
+      setChatMode('private' as ChatType);
       const privatePlayerList: ReceivingPlayerID[] = [];
       privatePlayerList.push({ playerID: item } as ReceivingPlayerID);
-      toast({
-        title: 'Private Chat Selected',
-        description: item,
-        status: 'success',
-      });
       addReceivingPlayers(privatePlayerList);
-      setChatMode('private' as ChatType);
     }
   }
 
