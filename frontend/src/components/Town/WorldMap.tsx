@@ -4,7 +4,6 @@ import Player, { UserLocation } from '../../classes/Player';
 import Video from '../../classes/Video/Video';
 import useCoveyAppState from '../../hooks/useCoveyAppState';
 
-
 // https://medium.com/@michaelwesthadley/modular-game-worlds-in-phaser-3-tilemaps-1-958fc7e6bbd6
 class CoveyGameScene extends Phaser.Scene {
   private player?: {
@@ -99,11 +98,12 @@ class CoveyGameScene extends Phaser.Scene {
           .sprite(0, 0, 'atlas', 'misa-front')
           .setSize(30, 40)
           .setOffset(0, 24);
-        myPlayer.label = this.add.text(0, 0, myPlayer.userName, {
+        const label = this.add.text(0, 0, myPlayer.userName, {
           font: '18px monospace',
           color: '#000000',
           backgroundColor: '#ffffff',
         });
+        myPlayer.label = label;
         myPlayer.sprite = sprite;
       }
       if (!sprite.anims) return;
@@ -187,12 +187,11 @@ class CoveyGameScene extends Phaser.Scene {
       const isMoving = primaryDirection !== undefined;
       this.player.label.setX(body.x);
       this.player.label.setY(body.y - 20);
-      if (isMoving &&
-        ( !this.lastLocation
-          || this.lastLocation.x !== body.x
-          || this.lastLocation.y !== body.y
-          || this.lastLocation.rotation !== primaryDirection
-          || this.lastLocation.moving !== isMoving)) {
+      if (!this.lastLocation
+        || this.lastLocation.x !== body.x
+        || this.lastLocation.y !== body.y
+        || (isMoving && this.lastLocation.rotation !== primaryDirection)
+        || this.lastLocation.moving !== isMoving) {
         if (!this.lastLocation) {
           this.lastLocation = {
             x: body.x,
