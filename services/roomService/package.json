@@ -17,8 +17,6 @@
     "test": "jest",
     "start": "npm run build:live",
     "production": "npm run build && node build/server.js",
-    "heroku-prebuild": "export NPM_CONFIG_PRODUCTION=false; export NODE_ENV=; NPM_CONFIG_PRODUCTION=false NODE_ENV=development npm install --only=dev --dev",
-    "heroku-postbuild": "export NPM_CONFIG_PRODUCTION=true; export NODE_ENV=production;",
     "build": "tsc -p .",
     "pack": "npm-pack-zip",
     "build:live": "nodemon --watch 'src/**/*.ts' src/server.ts",
