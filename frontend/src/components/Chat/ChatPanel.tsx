@@ -5,7 +5,7 @@ import {
   Flex,
   Spacer,
   Box,
-  Input
+  Input,
 } from '@chakra-ui/react';
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTypes";
@@ -25,6 +25,7 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
       nearbyPlayers.nearbyPlayers.forEach(player => {
         proximityPlayerList.push({ playerID: player.id } as ReceivingPlayerID);
       });
+      proximityPlayerList.push({ playerID: myPlayerID } as ReceivingPlayerID);
       addReceivingPlayers(proximityPlayerList);
     }
     updateChatState({
@@ -51,6 +52,7 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
       setChatMode('private' as ChatType);
       const privatePlayerList: ReceivingPlayerID[] = [];
       privatePlayerList.push({ playerID: item } as ReceivingPlayerID);
+      privatePlayerList.push({ playerID: myPlayerID } as ReceivingPlayerID);
       addReceivingPlayers(privatePlayerList);
     }
   }
