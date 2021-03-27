@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   Button,
   Select,
@@ -15,26 +15,31 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   const [chatInput, setChatInput] = useState('');
   const {userName, myPlayerID, players, nearbyPlayers} = useCoveyAppState();
   const { chatState, updateChatState } = props;
-  const [receivingPlayerID, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
+  const [receivingPlayerList, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
   const [chatMode, setChatMode] = useState<ChatType>('public');
   const playersList = players.filter((player) => player.id !== myPlayerID);
 
-  function sendMessage() {
-    if(chatMode === 'proximity') {
-      const proximityPlayerList: ReceivingPlayerID[] = [];
+  const updateNearbyPlayers = useCallback(() => {
+    const proximityPlayerList: ReceivingPlayerID[] = [];
       nearbyPlayers.nearbyPlayers.forEach(player => {
-        proximityPlayerList.push({ playerID: player.id } as ReceivingPlayerID);
+        proximityPlayerList.push({ playerID: player.id });
       });
-      proximityPlayerList.push({ playerID: myPlayerID } as ReceivingPlayerID);
+      proximityPlayerList.push({ playerID: myPlayerID });
       addReceivingPlayers(proximityPlayerList);
-    }
+  }, [myPlayerID, nearbyPlayers.nearbyPlayers]);
+  
+  useEffect(() => {
+    updateNearbyPlayers();
+  }, [updateNearbyPlayers]);
+
+  function sendMessage() {
     updateChatState({
       action: 'sendMessage',
       data: {
         message: chatInput,
         timestamp: new Date(),
         sendingPlayer: {id: myPlayerID, userName},
-        receivingPlayerID,
+        receivingPlayerID: receivingPlayerList,
         chatType: chatMode,
         }
     })
@@ -42,17 +47,21 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   
   function handleChangeList(item: string) {
     if(item === 'Proximity Chat') {
-      setChatMode('proximity' as ChatType);
+      setChatMode('proximity');
+      updateNearbyPlayers();
     }
     else if(item === 'Everyone') {
-      setChatMode('public' as ChatType);
+      setChatMode('public');
       addReceivingPlayers(undefined);
     }
     else {
-      setChatMode('private' as ChatType);
+      setChatMode('private');
       const privatePlayerList: ReceivingPlayerID[] = [];
-      privatePlayerList.push({ playerID: item } as ReceivingPlayerID);
-      privatePlayerList.push({ playerID: myPlayerID } as ReceivingPlayerID);
+      const privatePlayer = players.find(player => player.userName === item);
+      if(privatePlayer) {
+        privatePlayerList.push({ playerID: privatePlayer.id });
+      }
+      privatePlayerList.push({ playerID: myPlayerID });
       addReceivingPlayers(privatePlayerList);
     }
   }
