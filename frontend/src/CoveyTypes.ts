@@ -2,6 +2,8 @@ import { Socket } from 'socket.io-client';
 import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
 
+export const SecretKeyIdentifier = 'generated_secret_key=';
+
 export type CoveyEvent = 'playerMoved' | 'playerAdded' | 'playerRemoved';
 export type ChatType = 'public' | 'proximity' | 'private';
 
@@ -48,6 +50,10 @@ export type ReceivingPlayerID = {
   playerID: string
 };
 
+export type SecretKeySet = {
+  secretKey: string
+};
+
 export type ChatUpdate =
   | { action: 'receiveMessage'; data: ChatData }
   | { action: 'sendMessage'; data: ChatData }
@@ -59,5 +65,6 @@ export type ChatData = {
   timestamp: Date,
   sendingPlayer: { id: string, userName: string },
   receivingPlayerID?: ReceivingPlayerID [],
-  chatType: ChatType
+  chatType: ChatType,
+  encryptedSecretKeys?: SecretKeySet[]
 };

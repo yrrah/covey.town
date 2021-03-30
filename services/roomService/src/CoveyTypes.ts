@@ -6,11 +6,21 @@ export type UserLocation = {
   rotation: Direction;
   moving: boolean;
 };
+export type ReceivingPlayerID = {
+  playerID: string
+};
+
+export type SecretKeySet = {
+  secretKey: string
+};
+
 export type CoveyTownList = { friendlyName: string; coveyTownID: string; currentOccupancy: number; maximumOccupancy: number }[];
+
 export type ChatData = {
   message: string;
   timestamp: Date,
   sendingPlayer: { id: string, userName: string },
-  receivingPlayerID?: { playerID: string } [],
-  chatType: ChatType
+  receivingPlayerID?: ReceivingPlayerID [],
+  chatType: ChatType,
+  encryptedSecretKeys?: SecretKeySet[]
 };

@@ -1,4 +1,5 @@
 import {ChatData, ChatState, ChatUpdate} from "../../CoveyTypes";
+import { decrypt, encrypt } from "./ChatCrypto";
 
 export function defaultChatState(): ChatState {
   return {
@@ -15,7 +16,6 @@ export function chatStateReducer(state: ChatState, update:ChatUpdate): ChatState
     myPlayerID: state.myPlayerID,
     emitChat: state.emitChat,
   };
-
   function filterPermissions(data: ChatData) {
     if (data.chatType === 'public') {
       return true;
@@ -33,11 +33,11 @@ export function chatStateReducer(state: ChatState, update:ChatUpdate): ChatState
       nextState.chats = update.chats
       break;
     case 'sendMessage':
-      state.emitChat(update.data)
+      state.emitChat(encrypt(update.data))
       break;
     case 'receiveMessage':
       if(filterPermissions(update.data)) {
-        const newChat = update.data;
+        const newChat = decrypt(update.data, state.myPlayerID);
         newChat.timestamp = new Date(update.data.timestamp);
         nextState.chats = [...nextState.chats, newChat];
       }
