@@ -3,7 +3,6 @@ import {Container, Text, Tooltip, VStack, Wrap, Link} from "@chakra-ui/react";
 import {ChatData, ChatState} from "../../CoveyTypes";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 
-// ToDo: Auto scroll to bottom
 export default function ChatList(props: { chatState: ChatState }): JSX.Element {
 
   const {chatState} = props;
@@ -49,7 +48,7 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
 
     return chatState.chats.map(chat => (
       <Wrap key={chat.timestamp.getMilliseconds()} align='left'>
-        <Text ml={2} color='white'>({chat.chatType})</Text>
+        <Text ml={2} color='white' fontSize="sm">({chat.chatType})</Text>
         <Container display="flex" m={2} mt={0}
                    backgroundColor={chatColor(chat.chatType, chat.sendingPlayer.id)}
                    borderRadius="10px"
