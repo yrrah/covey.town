@@ -1,35 +1,32 @@
 import { Db, GridFSBucket, MongoClient, MongoError } from 'mongodb';
-import dotenv from 'dotenv';
 import assert from 'assert';
-import { logError } from './Utils';
 
-let database: Db | null = null;
-let client: MongoClient | null = null;
+let database: Db | undefined;
+let client: MongoClient | undefined;
 const DB_NAME = 'coveydb';
 export const GRIDFS_BUCKET_NAME = 'Uploads';
 
-export function connect(callback: (err?: MongoError | undefined) => void): void {
-  if (database == null) {
-    dotenv.config();
+/**
+ * Establish a connection to MongoDB server. This connection will be shared/reused for the lifetime of the server.
+ * @param callback called after trying to connect
+ */
+export function connect(callback: (err?: Error | undefined) => void): void {
+  if (!client) {
     assert(process.env.MONGO_CONNECT,
       'Environmental variable MONGO_CONNECT must be set');
     client = new MongoClient(process.env.MONGO_CONNECT, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    client.connect((err) => {
-      if (err) {
-        database = null;
-        callback(err);
-      } else {
-        callback();
-      }
-    });
+    client.connect(callback);
   } else {
-    callback();
+    callback(new MongoError('Already connected'));
   }
 }
 
+/**
+ * Opens a database connection. This connection is saved and returned for subsequent calls to this function.
+ */
 export default function db():Db {
   if (database){
     return database;
@@ -41,9 +38,16 @@ export default function db():Db {
   throw (new MongoError('no database connection'));
 }
 
-export async function emptyGridFS():Promise<void>{
-  const bucket = new GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
-  bucket.drop((error)=> {if (error){logError(error);}});
+/**
+ * Drops the file storage database. This should be called when the server shuts down to clean up the database.
+ */
+export function emptyGridFS(callback: (err?: Error | undefined) => void):void{
+  if (database) {
+    const bucket = new GridFSBucket(db(), {bucketName: GRIDFS_BUCKET_NAME});
+    bucket.drop(callback);
+  } else {
+    callback();
+  }
 }
 
 export function dbConnected():boolean {
@@ -53,10 +57,11 @@ export function dbConnected():boolean {
   return false;
 }
 
-// close open connection
-export async function closeDb(): Promise<void> {
+/**
+ * Closes the connection to MongoDB server and associated database connections.
+ */
+export function closeDb(callback: (err?: Error | undefined) => void): void {
   if (client) {
-    await client.close(true, (error)=> {if (error){logError(error);}});
-    client = null;
+    client.close(true, callback);
   }
 }

@@ -23,6 +23,7 @@ connect((err)=>{
 
 addTownRoutes(server, app);
 
+// Tried to clean up thoroughly to avoid ADDRESS IN USE errors, but they still happen some times
 let called = false;
 function cleanUp(event: string){
   // eslint-disable-next-line no-console
@@ -34,18 +35,21 @@ function cleanUp(event: string){
       // eslint-disable-next-line no-console
       console.log(`http closed ${gracefully ? 'gracefully' : '(forced)'}`);
       if (dbConnected()){
-        await emptyGridFS();
-        await closeDb();
-        // eslint-disable-next-line no-console
-        console.log('db closed');
-        process.exit(0);
+        emptyGridFS((gridErr) => {
+          if (gridErr){logError(gridErr);}
+          closeDb((dbErr) => {
+            if (dbErr){logError(dbErr);}
+            // eslint-disable-next-line no-console
+            console.log('db closed');
+            process.exit(0);
+          });
+        });
       } else {
         process.exit(0);
       }
     });
   }
 }
-
 ['exit', 'SIGINT', 'SIGUSR1', 'SIGUSR2', 'SIGTERM', 'SIGHUP', 'SIGQUIT'].forEach((eventType) => {
   process.on(eventType, cleanUp.bind(null, eventType));
 });

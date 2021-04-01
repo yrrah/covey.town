@@ -10,8 +10,6 @@ import CoveyTownsStore from '../lib/CoveyTownsStore';
 
 export default function addFileRoutes(app: Express): void {
 
-  const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
-
   /**
    * Upload a file
    */
@@ -25,46 +23,55 @@ export default function addFileRoutes(app: Express): void {
         },
       });
       let townId = '';
+      let authorized = false;
       busboy.on('field', (fieldname, val) => {
         if (fieldname === 'townId'){ townId = val;}
       });
       busboy.on('field', (fieldname, token) => {
         if (fieldname === 'token'){
-          const townController = CoveyTownsStore.getInstance()
-            .getControllerForTown(townId);
-
+          const townController = CoveyTownsStore.getInstance().getControllerForTown(townId);
           // Retrieve metadata about sending player from the TownController
           const s = townController?.getSessionByToken(token);
-          if (!s || !townController) {
-            // No valid session exists for this token so don't upload their file to our database
-            res.status(StatusCodes.UNAUTHORIZED)
-              .json({
-                message: 'Invalid token',
-              });
+          if (s && townController) {
+            // Valid session exists for this token so allow upload to our database
+            authorized = true;
           }
         }
       });
       busboy.on('file', (fieldname, file, filename, _encoding, mimetype) => {
-        const newFilename = nanoid() + path.extname(filename);
-        if (!(mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        if (!authorized) {
+          res.status(StatusCodes.UNAUTHORIZED);
+
+        } else if (!(mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
           || mimetype === 'image/png'
           || mimetype === 'image/jpg'
           || mimetype === 'image/jpeg')) {
-          throw (new Error('Filetype not allowed'));
-        }
-        if (fieldname === 'chatFile') {
-          const ws = gfs.openUploadStream(newFilename, { metadata:{ speaker: 'Bill Gates', duration:'1hr' }, contentType: mimetype });
-          file.pipe(ws);
+          res.status(StatusCodes.BAD_REQUEST)
+            .json({
+              message: 'Invalid file format',
+            });
+
+        } else if (fieldname !== 'chatFile') {
+          res.status(StatusCodes.BAD_REQUEST);
+
         } else {
-          throw (new Error('not a chatFile'));
+          const newFilename = nanoid() + path.extname(filename);
+          const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
+          const ws = gfs.openUploadStream(newFilename, {
+            // (TODO) tagged with townId so it's possible to clean up files when a town is closed
+            metadata: {townId},
+            contentType: mimetype,
+          });
+          file.pipe(ws);
+          res.status(StatusCodes.OK)
+            .json({
+              isOK: true,
+              response: {
+                fileName: newFilename,
+                name: filename,
+              },
+            });
         }
-        res.status(StatusCodes.OK)
-          .json(  {
-            isOK: true,
-            response: {
-              fileName: newFilename,
-              name: filename,
-            } });
       });
       req.pipe(busboy);
     } catch (err) {
@@ -82,6 +89,7 @@ export default function addFileRoutes(app: Express): void {
    */
   app.get('/files/:fileName', async (req, res) => {
     try {
+      const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
       const cursor = gfs.find({ filename: req.params.fileName });
       cursor.toArray((error, docs) => {
         if (error){throw (error);}
@@ -105,6 +113,7 @@ export default function addFileRoutes(app: Express): void {
    */
   app.delete('/files/:fileId', async (req, res) => {
     try {
+      const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
       gfs.delete(new ObjectId(req.params.fileId), (err) => {
         if (err){ throw (err); }
         return res.status(StatusCodes.OK);
