@@ -17,6 +17,7 @@ export type SecretKeySet = {
 export type CoveyTownList = { friendlyName: string; coveyTownID: string; currentOccupancy: number; maximumOccupancy: number }[];
 
 export type ChatData = {
+  fileName?: string;
   message: string;
   timestamp: Date,
   sendingPlayer: { id: string, userName: string },

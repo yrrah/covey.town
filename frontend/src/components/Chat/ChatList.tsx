@@ -1,6 +1,6 @@
 import React from 'react';
-import {Container, Text, Tooltip, VStack, Wrap} from "@chakra-ui/react";
-import {ChatState} from "../../CoveyTypes";
+import {Container, Text, Tooltip, VStack, Wrap, Link} from "@chakra-ui/react";
+import {ChatData, ChatState} from "../../CoveyTypes";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 
 // ToDo: Auto scroll to bottom
@@ -35,6 +35,18 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
       return sendingPlayerUserName
     }
 
+    function chatMessage(chat:ChatData){
+      if(chat.fileName){
+        return (
+          <Link display="flex"
+            href={`${process.env.REACT_APP_TOWNS_SERVICE_URL}/files/${chat.fileName}`}
+            download={chat.message}>
+            { chat.message }
+          </Link>)
+      }
+      return (<Text display="flex"> {chat.message}</Text>)
+    }
+
     return chatState.chats.map(chat => (
       <Wrap key={chat.timestamp.getMilliseconds()} align='left'>
         <Text ml={2} color='white'>({chat.chatType})</Text>
@@ -49,7 +61,7 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
           </Tooltip>
           <Tooltip label={`Sent at ${chat.timestamp.toLocaleTimeString()}`}
                    aria-label="Message Timestamp">
-            <Text display="flex"> {chat.message}</Text>
+            {chatMessage(chat)}
           </Tooltip>
 
         </Container>

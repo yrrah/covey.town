@@ -67,7 +67,7 @@ export default function Snackbar({
     <MUISnackbar
       anchorOrigin={{
         vertical: 'top',
-        horizontal: 'right',
+        horizontal: 'left',
       }}
       open={open}
       onClose={handleOnClose}

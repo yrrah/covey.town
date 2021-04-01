@@ -61,6 +61,7 @@ export type ChatUpdate =
   | { action: 'disconnect' }
 ;
 export type ChatData = {
+  fileName?: string;
   message: string;
   timestamp: Date,
   sendingPlayer: { id: string, userName: string },

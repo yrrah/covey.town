@@ -6,11 +6,12 @@ import ChatList from "./ChatList";
 
 function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }): JSX.Element {
   const [chatInput, setChatInput] = useState('');
-  const {userName, myPlayerID, players, nearbyPlayers} = useCoveyAppState();
+  const {userName, myPlayerID, players, nearbyPlayers, apiClient, sessionToken, currentTownID} = useCoveyAppState();
   const {chatState, updateChatState} = props;
   const [receivingPlayerList, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
   const [chatMode, setChatMode] = useState<ChatType>('public');
   const playersList = players.filter((player) => player.id !== myPlayerID);
+  const [files, setFiles] = useState<FileList|null>(null);
 
   const updateNearbyPlayers = useCallback(() => {
     const proximityPlayerList: ReceivingPlayerID[] = [];
@@ -25,11 +26,12 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     updateNearbyPlayers();
   }, [updateNearbyPlayers]);
 
-  function sendMessage() {
+  function sendMessage(message:string, fileName?:string) {
     updateChatState({
       action: 'sendMessage',
       data: {
-        message: chatInput,
+        fileName,
+        message,
         timestamp: new Date(),
         sendingPlayer: {id: myPlayerID, userName},
         receivingPlayerID: receivingPlayerList,
@@ -59,9 +61,24 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     }
   }
 
+  async function doUpload() {
+    if (files && files[0]) {
+      const response = await apiClient.uploadFile({
+          file: files[0],
+          name: 'chatFile',
+          token:sessionToken,
+          coveyTownID:currentTownID
+        })
+      if (response.fileName) {
+        sendMessage(response.name, response.fileName)
+      }
+    }
+  }
 
   return <Flex bg='lightgrey' direction='column' height='600px' marginTop="50px">
     <Flex justify='flex-end'>
+      <Input type='file' name='chatFile' onChange={(event) => {setFiles(event.target.files)}}/>
+      <Button data-testid="uploadFile" onClick={ () => doUpload() } color="blue">Upload</Button>
       <Button colorScheme="teal" variant="ghost">
         X
       </Button>
@@ -81,7 +98,7 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
              value={chatInput}
              onChange={event => setChatInput(event.target.value)}  />
       <Spacer flex={1} />
-      <Button data-testid="sendChat" onClick={ () => sendMessage() } color="blue">Send</Button>
+      <Button data-testid="sendChat" onClick={ () => sendMessage(chatInput) } color="blue">Send</Button>
     </Flex>
   </Flex>
 }

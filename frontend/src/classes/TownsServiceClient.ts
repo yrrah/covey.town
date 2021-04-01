@@ -92,6 +92,18 @@ export type CoveyTownInfo = {
   maximumOccupancy: number
 };
 
+export type UploadRequest = {
+  file: File;
+  name: string;
+  token: string;
+  coveyTownID: string;
+}
+
+export type UploadResponse = {
+  name: string;
+  fileName: string;
+}
+
 export default class TownsServiceClient {
   private _axios: AxiosInstance;
 
@@ -139,6 +151,18 @@ export default class TownsServiceClient {
 
   async joinTown(requestData: TownJoinRequest): Promise<TownJoinResponse> {
     const responseWrapper = await this._axios.post('/sessions', requestData);
+    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async uploadFile(requestData: UploadRequest): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append('townId', requestData.coveyTownID);
+    formData.append('token', requestData.token);
+    formData.append(requestData.name, requestData.file);
+    const responseWrapper = await this._axios.post('/files', formData,{
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }});
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
