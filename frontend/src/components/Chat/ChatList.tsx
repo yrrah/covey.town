@@ -40,7 +40,7 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
         return (
           <Link display="flex"
             href={`${process.env.REACT_APP_TOWNS_SERVICE_URL}/files/${chat.fileName}`}
-            download={chat.message}>
+            download={chat.message} target="_blank">
             { chat.message }
           </Link>)
       }
