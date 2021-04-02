@@ -4,6 +4,7 @@ import {Button} from "@material-ui/core";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTypes";
 import ChatList from "./ChatList";
+import useMaybeVideo from '../../hooks/useMaybeVideo';
 
 function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }): JSX.Element {
   const [chatInput, setChatInput] = useState('');
@@ -15,7 +16,8 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   const [uploading, setUploading] = useState<boolean>(false);
   const playersList = players.filter((player) => player.id !== myPlayerID);
   const myRef = useRef(null);
-  const toast = useToast()
+  const video = useMaybeVideo();
+  const toast = useToast();
 
   const executeScroll = () => {
     const node = (myRef.current) as unknown as Element;
@@ -42,18 +44,60 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     executeScroll();
   }, [chatState]);
 
+  function wrapMessage(message: string) {
+    const listOfWords = message.split(' ');
+    let wrappedMessage = '';
+    let messageLine = '';
+    const characterLimit = 32;
+    listOfWords.forEach(word => {
+      if((word.length + messageLine.length) > characterLimit && word.length < characterLimit) {
+        wrappedMessage = wrappedMessage.concat(messageLine).concat('\n');
+        messageLine = '';
+      }
+      if(word.length > 32) {
+        let count = 0;
+        while(count < word.length) {
+          if(messageLine.length + count + characterLimit > word.length) {
+            messageLine = messageLine.concat(word.substring(count, word.length));
+          }
+          else {
+            messageLine = messageLine.concat(word.substring(count, count + (characterLimit - messageLine.length))).concat('-\n');
+            wrappedMessage = wrappedMessage.concat(messageLine);
+            messageLine = '';
+          }
+          count += characterLimit;
+        }
+      }
+      else {
+        messageLine = messageLine.concat(word).concat(' ');
+      }
+    });
+    if(messageLine !== '') {
+      wrappedMessage = wrappedMessage.concat(messageLine);
+    }
+    return wrappedMessage;
+  }
+
   function sendMessage(message: string, fileName?: string) {
+    const wrappedMessage = wrapMessage(message);
     updateChatState({
       action: 'sendMessage',
       data: {
         fileName,
-        message,
+        message: wrappedMessage,
         timestamp: new Date(),
         sendingPlayer: {id: myPlayerID, userName},
         receivingPlayerID: receivingPlayerList,
         chatType: chatMode,
       }
     })
+    setChatInput('');
+  }
+
+  function handleKeyDownEvents(event: React.KeyboardEvent<HTMLInputElement>) {
+    if(event.key === 'Enter') {
+        sendMessage(chatInput);
+      }
   }
 
   function handleChangeList(item: string) {
@@ -135,7 +179,10 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     <Flex direction='row'>
       <Input data-testid="chatInput" placeholder="Chat input"
              value={chatInput}
-             onChange={event => setChatInput(event.target.value)}/>
+             onChange={event => setChatInput(event.target.value)}
+             onFocus={() => video?.pauseGame()}
+             onBlur={ () => video?.unPauseGame()}
+             onKeyDown={event => handleKeyDownEvents(event)}/>
       <Spacer flex={1}/>
       <Button data-testid="sendChat" onClick={() => sendMessage(chatInput)} variant="outlined"
               >Send</Button>
