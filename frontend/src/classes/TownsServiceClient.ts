@@ -104,6 +104,11 @@ export type UploadResponse = {
   fileName: string;
 }
 
+export type UploadError = {
+  userError: boolean;
+  message: string;
+}
+
 export default class TownsServiceClient {
   private _axios: AxiosInstance;
 
@@ -154,7 +159,7 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async uploadFile(requestData: UploadRequest): Promise<UploadResponse> {
+  async uploadFile(requestData: UploadRequest): Promise<UploadResponse | UploadError> {
     const formData = new FormData();
     formData.append('townId', requestData.coveyTownID);
     formData.append('token', requestData.token);
@@ -163,6 +168,9 @@ export default class TownsServiceClient {
       headers: {
         'Content-Type': 'multipart/form-data'
       }});
+    if (responseWrapper.data.userError) {
+      return responseWrapper.data;
+    }
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 

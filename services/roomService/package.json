@@ -1,5 +1,5 @@
 {
-  "name": "covey-town-room_service",
+  "name": "covey-town-room-service",
   "version": "1.0.0",
   "description": "Backend service for processing Covey.Town room requests",
   "main": "server.js",

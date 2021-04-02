@@ -39,20 +39,33 @@ export default function addFileRoutes(app: Express): void {
         }
       });
       busboy.on('file', (fieldname, file, filename, _encoding, mimetype) => {
+        const allowedMimes = [
+          'text/plain',
+          'text/css',
+          'application/pdf',
+          'application/msword',
+          'application/vnd.ms-excel',
+          'application/vnd.ms-powerpoint',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+          'image/png',
+          'image/jpeg',
+          'image/bmp',
+          'image/gif',
+          'image/tiff',
+          'image/svg+xml',
+        ];
         if (!authorized) {
-          res.status(StatusCodes.UNAUTHORIZED);
+          res.sendStatus(StatusCodes.UNAUTHORIZED);
 
-        } else if (!(mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-          || mimetype === 'image/png'
-          || mimetype === 'image/jpg'
-          || mimetype === 'image/jpeg')) {
-          res.status(StatusCodes.BAD_REQUEST)
-            .json({
-              message: 'Invalid file format',
-            });
-
+        } else if (!allowedMimes.includes(mimetype)) {
+          res.status(StatusCodes.BAD_REQUEST).json({
+            userError: true,
+            message: 'Invalid file format',
+          });
         } else if (fieldname !== 'chatFile') {
-          res.status(StatusCodes.BAD_REQUEST);
+          res.sendStatus(StatusCodes.BAD_REQUEST);
 
         } else {
           const newFilename = nanoid() + path.extname(filename);
@@ -73,13 +86,26 @@ export default function addFileRoutes(app: Express): void {
             });
         }
       });
+      busboy.on('error', (err: Error) => {
+        logError(err);
+        res.sendStatus(StatusCodes.BAD_REQUEST);
+      });
+      busboy.on('finish', () => {
+        res.sendStatus(StatusCodes.BAD_REQUEST);
+      });
       req.pipe(busboy);
     } catch (err) {
-      logError(err);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({
-          message: 'Internal server error, please see log in server for more details',
-        });
+      if (err.message === 'Missing Content-Type') {
+        res.sendStatus(StatusCodes.BAD_REQUEST);
+      } else if (err.message.includes('Unsupported content type')) {
+        res.sendStatus(StatusCodes.BAD_REQUEST);
+      } else {
+        logError(err);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+          .json({
+            message: 'Internal server error, please see log in server for more details',
+          });
+      }
     }
   });
 
@@ -96,6 +122,7 @@ export default function addFileRoutes(app: Express): void {
         if (docs.length < 1){throw (new Error('File not found.'));}
         const file = docs[0];
         res.set('Content-Type', file.contentType);
+        res.set('X-Content-Type-Options', 'nosniff');
         res.set('Content-Disposition', `attachment; filename="${  file.filename  }"`);
         gfs.openDownloadStream(file._id).pipe(res);
       });

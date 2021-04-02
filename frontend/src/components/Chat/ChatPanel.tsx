@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Box, Button, Flex, Input, Select, Spacer,} from '@chakra-ui/react';
+import {Box, Flex, Input, Select, Spacer, useToast} from '@chakra-ui/react';
+import {Button} from "@material-ui/core";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTypes";
 import ChatList from "./ChatList";
@@ -10,9 +11,11 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
   const {chatState, updateChatState} = props;
   const [receivingPlayerList, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
   const [chatMode, setChatMode] = useState<ChatType>('public');
+  const fileRef = React.useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState<boolean>(false);
   const playersList = players.filter((player) => player.id !== myPlayerID);
-  const [files, setFiles] = useState<FileList | null>(null);
   const myRef = useRef(null);
+  const toast = useToast()
 
   const executeScroll = () => {
     const node = (myRef.current) as unknown as Element;
@@ -72,27 +75,48 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
     }
   }
 
-  async function doUpload() {
-    if (files && files[0]) {
+  async function doUpload():Promise<void> {
+    if (fileRef.current && fileRef.current.files && fileRef.current.files[0]) {
+      setUploading(true);
+      const file = fileRef.current.files[0]
+      fileRef.current.value = ''
       const response = await apiClient.uploadFile({
-        file: files[0],
+        file,
         name: 'chatFile',
         token: sessionToken,
         coveyTownID: currentTownID
-      })
-      if (response.fileName) {
+      });
+      if ('fileName' in response) {
         sendMessage(response.name, response.fileName)
+      }
+      if ('userError' in response) {
+        toast({
+          title: 'Unable to upload file',
+          description: response.message,
+          status: 'error'
+        });
       }
     }
   }
 
+  function fileTypes():string{
+    return "text/plain, application/pdf, image/*, " +
+      "application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint, " +
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document, " +
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, " +
+      "application/vnd.openxmlformats-officedocument.presentationml.slideshow"
+  }
+
   return <Flex bg='lightgrey' direction='column' height='600px' marginTop="50px">
-    <Flex justify='flex-end'>
-      <Input type='file' name='chatFile' onChange={(event) => {
-        setFiles(event.target.files)
-      }}/>
-      <Button data-testid="uploadFile" onClick={() => doUpload()} color="blue">Upload</Button>
-      <Button colorScheme="teal" variant="ghost">
+    <Flex direction='row'>
+      <label htmlFor="chatFile">
+        <input type='file' name='chatFile' ref={fileRef} title="&nbsp;"
+               accept={fileTypes()} id='chatFile' style={{'display': 'none'}}
+               onChange={() => doUpload().then(() => setUploading(false))}/>
+         <Button variant="outlined" component="span" disabled={uploading}>Upload File</Button>
+      </label>
+      <Spacer/>
+      <Button variant="text">
         X
       </Button>
     </Flex>
@@ -113,8 +137,8 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
              value={chatInput}
              onChange={event => setChatInput(event.target.value)}/>
       <Spacer flex={1}/>
-      <Button data-testid="sendChat" onClick={() => sendMessage(chatInput)}
-              color="blue">Send</Button>
+      <Button data-testid="sendChat" onClick={() => sendMessage(chatInput)} variant="outlined"
+              >Send</Button>
     </Flex>
   </Flex>
 }
