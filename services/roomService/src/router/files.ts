@@ -24,6 +24,7 @@ export default function addFileRoutes(app: Express): void {
       });
       let townId = '';
       let authorized = false;
+      let headersSent = false;
       busboy.on('field', (fieldname, val) => {
         if (fieldname === 'townId'){ townId = val;}
       });
@@ -76,6 +77,7 @@ export default function addFileRoutes(app: Express): void {
             contentType: mimetype,
           });
           file.pipe(ws);
+          headersSent = true;
           res.status(StatusCodes.OK)
             .json({
               isOK: true,
@@ -91,7 +93,9 @@ export default function addFileRoutes(app: Express): void {
         res.sendStatus(StatusCodes.BAD_REQUEST);
       });
       busboy.on('finish', () => {
-        res.sendStatus(StatusCodes.BAD_REQUEST);
+        if (!headersSent) {
+          res.sendStatus(StatusCodes.BAD_REQUEST);
+        }
       });
       req.pipe(busboy);
     } catch (err) {
