@@ -6,10 +6,10 @@ import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTyp
 import ChatList from "./ChatList";
 import useMaybeVideo from '../../hooks/useMaybeVideo';
 
-function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }): JSX.Element {
+function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch<React.SetStateAction<boolean>>, updateChatState: React.Dispatch<ChatUpdate> }): JSX.Element {
   const [chatInput, setChatInput] = useState('');
   const {userName, myPlayerID, players, nearbyPlayers, apiClient, sessionToken, currentTownID} = useCoveyAppState();
-  const {chatState, updateChatState} = props;
+  const {chatState, setChatVisible, updateChatState} = props;
   const [receivingPlayerList, addReceivingPlayers] = useState<ReceivingPlayerID[]>();
   const [chatMode, setChatMode] = useState<ChatType>('public');
   const fileRef = React.useRef<HTMLInputElement | null>(null);
@@ -160,7 +160,7 @@ function ChatPanel(props: { chatState: ChatState, updateChatState: React.Dispatc
          <Button variant="outlined" component="span" disabled={uploading}>Upload File</Button>
       </label>
       <Spacer/>
-      <Button variant="text">
+      <Button variant="text" onClick={() => setChatVisible(false)}>
         X
       </Button>
     </Flex>

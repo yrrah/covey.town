@@ -11,13 +11,13 @@ import VideoOverlay from "../VideoCall/VideoOverlay/VideoOverlay";
 
 export default function TownPage(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }):JSX.Element{
   const { chatState, updateChatState } = props;
-  const [chatVisible, setIsEnabled] = useState(false);
+  const [chatVisible, setChatVisible] = useState(false);
   const [mediaError, setMediaError] = useState<Error>();
 
   const chatButton = (
-    <MenuItem onClick={() => setIsEnabled(!chatVisible)}>
-      <Typography variant="body1">Chat {chatVisible ? <span>open</span> :
-        <span> not open </span>}</Typography>
+    <MenuItem onClick={() => setChatVisible(!chatVisible)}>
+      <Typography variant="body1">{chatVisible ? <span>Hide Chat</span> :
+        <span>Show Chat</span>}</Typography>
     </MenuItem>);
 
   return (
@@ -30,7 +30,7 @@ export default function TownPage(props: { chatState: ChatState, updateChatState:
         </GridItem>
         {chatVisible &&
         <GridItem colSpan={3}>
-          <ChatPanel chatState={chatState} updateChatState={updateChatState}/>
+          <ChatPanel chatState={chatState} setChatVisible={setChatVisible} updateChatState={updateChatState}/>
         </GridItem>
         }
       </Grid>

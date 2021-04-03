@@ -8,7 +8,6 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
   const {chatState} = props;
   const {myPlayerID} = useCoveyAppState();
 
-
   function showChats(): string | JSX.Element[] {
 
     if (!chatState.chats) return 'no data';
@@ -28,10 +27,20 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
     }
 
     function chatUserName(sendingPlayerID: string, sendingPlayerUserName: string) {
+      let sender = sendingPlayerUserName;
       if (sendingPlayerID === myPlayerID) {
-        return "Me"
+        sender = "Me"
       }
-      return sendingPlayerUserName
+      const playerNameText = (<Text as='b'> {sender}:&nbsp; </Text>);
+      // hide player id of server messages
+      if (sendingPlayerID === '0'){
+        return playerNameText
+      }
+      return (
+        <Tooltip label={`User ID:  ${sendingPlayerID}`} aria-label="User ID">
+          {playerNameText}
+        </Tooltip>
+      );
     }
 
     function chatMessage(chat:ChatData){
@@ -48,21 +57,19 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
 
     return chatState.chats.map(chat => (
       <Wrap key={chat.timestamp.getMilliseconds()} align='left'>{
-        chat.chatType === 'proximity' && 
+        chat.chatType === 'proximity' &&
         <Text ml={2} color='powderblue' fontSize="sm">(Proximity Chat)</Text>
       }
-      {chat.chatType === 'private' && 
+      {chat.chatType === 'private' &&
         <Text ml={2} color='tomato' fontSize="sm">(Private Chat)</Text>
       }
         <Container display="flex" m={2} mt={0}
                    backgroundColor={chatColor(chat.chatType, chat.sendingPlayer.id)}
                    borderRadius="10px"
                    padding="1">
-          <Tooltip label={`User ID:  ${chat.sendingPlayer.id}`}
-                   aria-label="User ID">
-            <Text
-              as='b'>{chatUserName(chat.sendingPlayer.id, chat.sendingPlayer.userName)}:&nbsp; </Text>
-          </Tooltip>
+
+            {chatUserName(chat.sendingPlayer.id, chat.sendingPlayer.userName)}
+
           <Tooltip label={`Sent at ${chat.timestamp.toLocaleTimeString()}`}
                    aria-label="Message Timestamp">
             {chatMessage(chat)}
