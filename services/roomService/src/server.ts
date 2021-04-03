@@ -16,7 +16,7 @@ connectDb((err)=>{
   if (err){ logError(err); } else { addFileRoutes(app); }
 });
 
-addTownRoutes(server, app);
+const socket = addTownRoutes(server, app);
 
 server.listen(process.env.PORT || 8081, () => {
   const address = server.address() as AddressInfo;
@@ -34,6 +34,7 @@ function cleanUp(eventType: string){
   console.log(`got signal ${eventType}`);
   if (!calledOnce){
     calledOnce = true;
+    socket.close();
     server.close();
     if (dbConnected()) {
       emptyGridFS((gridErr) => {

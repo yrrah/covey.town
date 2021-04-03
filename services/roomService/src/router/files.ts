@@ -24,7 +24,6 @@ export default function addFileRoutes(app: Express): void {
       });
       let townId = '';
       let authorized = false;
-      let headersSent = false;
       busboy.on('field', (fieldname, val) => {
         if (fieldname === 'townId'){ townId = val;}
       });
@@ -59,15 +58,10 @@ export default function addFileRoutes(app: Express): void {
         ];
         if (!authorized) {
           res.sendStatus(StatusCodes.UNAUTHORIZED);
-
         } else if (!allowedMimes.includes(mimetype)) {
-          res.status(StatusCodes.BAD_REQUEST).json({
-            userError: true,
-            message: 'Invalid file format',
-          });
+          res.sendStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE);
         } else if (fieldname !== 'chatFile') {
           res.sendStatus(StatusCodes.BAD_REQUEST);
-
         } else {
           const newFilename = nanoid() + path.extname(filename);
           const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
@@ -76,40 +70,45 @@ export default function addFileRoutes(app: Express): void {
             metadata: {townId},
             contentType: mimetype,
           });
-          file.pipe(ws);
-          headersSent = true;
-          res.status(StatusCodes.OK)
-            .json({
-              isOK: true,
-              response: {
-                fileName: newFilename,
-                name: filename,
-              },
-            });
+          file.on('limit', () => {
+            ws.abort();
+            req.unpipe(busboy);
+            res.set('Connection', 'close');
+            res.sendStatus(StatusCodes.REQUEST_TOO_LONG);
+          });
+          file.pipe(ws).on('finish', () => {
+            res.status(StatusCodes.OK)
+              .json({
+                isOK: true,
+                response: {
+                  fileName: newFilename,
+                  name: filename,
+                },
+              });
+          });
         }
       });
       busboy.on('error', (err: Error) => {
-        logError(err);
-        res.sendStatus(StatusCodes.BAD_REQUEST);
-      });
-      busboy.on('finish', () => {
-        if (!headersSent) {
+        if (!res.headersSent) {
+          logError(err);
           res.sendStatus(StatusCodes.BAD_REQUEST);
         }
       });
       req.pipe(busboy);
     } catch (err) {
-      if (err.message === 'Missing Content-Type') {
-        res.sendStatus(StatusCodes.BAD_REQUEST);
-      } else if (err.message.includes('Unsupported content type')) {
-        res.sendStatus(StatusCodes.BAD_REQUEST);
-      } else {
-        logError(err);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-          .json({
-            message: 'Internal server error, please see log in server for more details',
-          });
+      if (!res.headersSent) {
+        if (err.message === 'Missing Content-Type') {
+          res.sendStatus(StatusCodes.BAD_REQUEST);
+        } else if (err.message.includes('Unsupported content type')) {
+          res.sendStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE);
+        } else {
+          res.status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({
+              message: 'Internal server error, please see log in server for more details',
+            });
+        }
       }
+      logError(err);
     }
   });
 

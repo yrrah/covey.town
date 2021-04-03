@@ -1,5 +1,6 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, {AxiosInstance, AxiosResponse} from 'axios';
 import assert from 'assert';
+import {StatusCodes} from "http-status-codes";
 import { ServerPlayer } from './Player';
 
 /**
@@ -164,14 +165,23 @@ export default class TownsServiceClient {
     formData.append('townId', requestData.coveyTownID);
     formData.append('token', requestData.token);
     formData.append(requestData.name, requestData.file);
-    const responseWrapper = await this._axios.post('/files', formData,{
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }});
-    if (responseWrapper.data.userError) {
-      return responseWrapper.data;
+    try {
+      const responseWrapper = await this._axios.post('/files', formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }});
+      return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+    }catch(error){
+      if(error.response.status === StatusCodes.REQUEST_TOO_LONG){
+        return {userError: true, message: 'File must be smaller than 5MB.'}
+      }
+      if(error.response.status === StatusCodes.UNSUPPORTED_MEDIA_TYPE){
+        return {userError: true, message: 'Invalid file format.'}
+      }
+      if(error.response.status === StatusCodes.UNAUTHORIZED){
+        return {userError: true, message: 'Authentication failed.'}
+      }
+      return {userError: true, message: 'Error uploading file.'}
     }
-    return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
-
 }
