@@ -10,7 +10,7 @@ export const GRIDFS_BUCKET_NAME = 'Uploads';
  * Establish a connection to MongoDB server. This connection will be shared/reused for the lifetime of the server.
  * @param callback called after trying to connect
  */
-export function connect(callback: (err?: Error | undefined) => void): void {
+export function connectDb(callback: (err?: Error | undefined) => void): void {
   if (!client) {
     assert(process.env.MONGO_CONNECT,
       'Environmental variable MONGO_CONNECT must be set');

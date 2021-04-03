@@ -1,5 +1,5 @@
 {
-  "name": "covey-town-room-service",
+  "name": "covey-town-roomService",
   "version": "1.0.0",
   "description": "Backend service for processing Covey.Town room requests",
   "main": "server.js",
@@ -19,7 +19,7 @@
     "production": "npm run build && node build/server.js",
     "build": "tsc -p .",
     "pack": "npm-pack-zip",
-    "build:live": "nodemon --watch 'src/**/*.ts' src/server.ts",
+    "build:live": "nodemon --signal SIGINT --watch 'src/**/*.ts' src/server.ts",
     "format": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
@@ -29,7 +29,6 @@
     "@types/jest": "^26.0.20",
     "@types/mongodb": "^3.6.11",
     "@types/node": "^14.14.13",
-    "@types/stoppable": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^4.13.0",
     "eslint-config-airbnb-typescript": "^12.0.0",
     "eslint-config-prettier": "^7.2.0",
@@ -59,7 +58,6 @@
     "mongodb": "^3.6.5",
     "nanoid": "^3.1.20",
     "socket.io": "^3.0.4",
-    "stoppable": "^1.1.0",
     "twilio": "^3.54.2"
   }
 }
