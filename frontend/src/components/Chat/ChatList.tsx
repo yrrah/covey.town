@@ -43,12 +43,17 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
             { chat.message }
           </Link>)
       }
-      return (<Text display="flex"> {chat.message}</Text>)
+      return (<Text style={{whiteSpace:"pre"}} display="flex"> {chat.message} </Text>)
     }
 
     return chatState.chats.map(chat => (
-      <Wrap key={chat.timestamp.getMilliseconds()} align='left'>
-        <Text ml={2} color='white' fontSize="sm">({chat.chatType})</Text>
+      <Wrap key={chat.timestamp.getMilliseconds()} align='left'>{
+        chat.chatType === 'proximity' && 
+        <Text ml={2} color='powderblue' fontSize="sm">(Proximity Chat)</Text>
+      }
+      {chat.chatType === 'private' && 
+        <Text ml={2} color='tomato' fontSize="sm">(Private Chat)</Text>
+      }
         <Container display="flex" m={2} mt={0}
                    backgroundColor={chatColor(chat.chatType, chat.sendingPlayer.id)}
                    borderRadius="10px"

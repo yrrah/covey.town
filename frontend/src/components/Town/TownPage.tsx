@@ -8,30 +8,14 @@ import MenuBar from "../VideoCall/VideoFrontend/components/MenuBar/MenuBar";
 import WorldMap from "./WorldMap";
 import ChatPanel from "../Chat/ChatPanel";
 import VideoOverlay from "../VideoCall/VideoOverlay/VideoOverlay";
-import useMaybeVideo from '../../hooks/useMaybeVideo';
-
-let temp = false;
 
 export default function TownPage(props: { chatState: ChatState, updateChatState: React.Dispatch<ChatUpdate> }):JSX.Element{
   const { chatState, updateChatState } = props;
   const [chatVisible, setIsEnabled] = useState(false);
   const [mediaError, setMediaError] = useState<Error>();
-  const video = useMaybeVideo();
-
-  const chatButtonLogic = function() {
-    setIsEnabled(!chatVisible);
-    temp = !temp;
-    console.log(temp);
-    if (temp === true)  {
-      video?.pauseGame();
-    }
-    else  {
-      video?.unPauseGame();
-    }
-  };
 
   const chatButton = (
-    <MenuItem onClick={() => chatButtonLogic()}>
+    <MenuItem onClick={() => setIsEnabled(!chatVisible)}>
       <Typography variant="body1">Chat {chatVisible ? <span>open</span> :
         <span> not open </span>}</Typography>
     </MenuItem>);
