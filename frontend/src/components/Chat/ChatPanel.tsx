@@ -164,7 +164,7 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
         X
       </Button>
     </Flex>
-    <Box bg='black' flex={1} m={2} overflow="scroll" overflowY="auto">
+    <Box bg='black' flex={1} m={2} overflowX='hidden' overflowY="auto">
       <ChatList chatState={chatState}/>
       <div ref={myRef}/>
     </Box>
