@@ -99,6 +99,19 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
       }
   }
 
+  function saveChat() {
+    let fileContent = ''
+    for (let i = 1; i < chatState.chats.length; i += 1)  {
+      fileContent += `${chatState.chats[i].message}\n`
+    }
+    const chatDocument = document.createElement('a');
+    const chatFile = new Blob([fileContent]);
+    const chatFileUrl = URL.createObjectURL(chatFile);
+    chatDocument.href = chatFileUrl;
+    chatDocument.download = 'ChatFile.txt';
+    chatDocument.click();
+  }
+
   function handleChangeList(item: string) {
     if (item === 'Proximity Chat') {
       setChatMode('proximity');
@@ -198,6 +211,7 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
       <Spacer flex={1}/>
       <Button data-testid="sendChat" onClick={() => sendMessage(chatInput)} variant="outlined"
               >Send</Button>
+      <Button data-testid="saveChat" onClick={() => saveChat()} variant="outlined">Save</Button>
     </Flex>
   </Flex>
 }
