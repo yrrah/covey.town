@@ -102,7 +102,7 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
   function saveChat() {
     let fileContent = ''
     for (let i = 1; i < chatState.chats.length; i += 1)  {
-      fileContent += `${chatState.chats[i].message}\n`
+      fileContent += `${chatState.chats[i].sendingPlayer.userName}:  ${chatState.chats[i].message}\n`
     }
     const chatDocument = document.createElement('a');
     const chatFile = new Blob([fileContent]);
