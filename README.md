@@ -4,14 +4,17 @@ Covey.Town provides a virtual meeting space where different groups of people can
 Covey.Town was built for Northeastern's [Spring 2021 software engineering course](https://neu-se.github.io/CS4530-CS5500-Spring-2021/), and is designed to be reused across semesters.
 You can view our reference deployment of the app at [app.covey.town](https://app.covey.town/).
 
-![Covey.Town Architecture](docs/covey-town-architecture.png)
+![Covey.Town Architecture](docs/high-level-architecture.png)
 
 The figure above depicts the high-level architecture of Covey.Town.
 The frontend client (in the `frontend` directory of this repository) uses the [PhaserJS Game Library](https://phaser.io) to create a 2D game interface, using tilemaps and sprites.
 The frontend implements video chat using the [Twilio Programmable Video](https://www.twilio.com/docs/video) API, and that aspect of the interface relies heavily on [Twilio's React Starter App](https://github.com/twilio/twilio-video-app-react).
 
+>The frontend also includes a text chat client. This enables sending messages and files to other players that you encounter within a Town.
+
 A backend service (in the `services/roomService` directory) implements the application logic: tracking which "towns" are available to be joined, and the state of each of those towns.
 
+>The backend maintains a connection to a MongoDB cloud database for storing and retrieving files that are shared between Players.
 ## Running this app locally
 
 Running the application locally entails running both the backend service and a frontend.
@@ -31,6 +34,21 @@ To create an account and configure your local environment:
 | `TWILIO_API_KEY_SID`    | The SID of the new API key you created.   |
 | `TWILIO_API_KEY_SECRET` | The secret for the API key you created.   |
 | `TWILIO_API_AUTH_TOKEN` | Visible on your twilio account dashboard. |
+
+>To enable file sharing you will need a [MongoDB Atlas](https://cloud.mongodb.com/) account*. An M0 Sandbox is free and has plenty of storage for sharing small files
+>
+>1. Create a database called 'coveydb' on an M0 cluster
+>2. Under 'Network Access', select 'Add IP Address' and 'ALLOW ACCESS FROM ANYWHERE'
+>2. Create a user with 'Grant specific privileges', 'readWrite' @ 'coveydb'
+>3. On the cluster dashboard click 'CONNECT', then 'Connect your application'
+>4. Copy the connection uri into a new variable in your '.env' file
+>5. Insert the username and password you chose in step 2.  
+>e.g. "mongodb+srv://username:password@coveycluster.333xb.mongodb.net"
+>
+>| Config Value            | Description                               |
+>| ----------------------- | ----------------------------------------- |
+>| `MONGO_CONNECT     `    | Connection string for MongoDB Atlas       |
+>*Alternatively you could set up a self-managed MongoDB database
 
 ### Starting the backend
 
