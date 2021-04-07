@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import CryptoJS from 'crypto-js';
-import { ChatData, SecretKeyIdentifier, SecretKeySet } from '../../CoveyTypes';
+import { ChatData, SECRET_KEY_IDENTIFIER, SecretKeySet } from '../../CoveyTypes';
 
 function getSecretKey(data: ChatData, playerID: string) {
   let secretKey;
@@ -12,7 +12,7 @@ function getSecretKey(data: ChatData, playerID: string) {
     } catch(err) {
       decryptedKeyString = '';
     }
-    if(decryptedKeyString.includes(SecretKeyIdentifier)) {
+    if(decryptedKeyString.includes(SECRET_KEY_IDENTIFIER)) {
       secretKey = secretKeySet.secretKey;
       return false;
     }
@@ -31,7 +31,7 @@ export function encrypt(data: ChatData): ChatData {
   const secretKeySet: SecretKeySet[] = [];
   encryptedData.message = CryptoJS.AES.encrypt(data.message, secretKey).toString();
   data.receivingPlayerID.forEach(player => {
-    secretKeySet.push({ secretKey: CryptoJS.AES.encrypt(SecretKeyIdentifier.concat(secretKey), player.playerID).toString() });
+    secretKeySet.push({ secretKey: CryptoJS.AES.encrypt(SECRET_KEY_IDENTIFIER.concat(secretKey), player.playerID).toString() });
   });
   encryptedData.encryptedSecretKeys = secretKeySet;
   return encryptedData;

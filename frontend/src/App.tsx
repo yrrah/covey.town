@@ -84,7 +84,7 @@ async function GameController(initData: TownJoinResponse,
     action: 'initChat',
     myPlayerID: gamePlayerID,
     chats: [{
-      message: `Connected to town ${roomName} (${video.coveyTownID})`,
+      message: `Connected to town, ${roomName}`,
       timestamp: new Date(),
       sendingPlayer: {id: '0', userName:'Server Message'},
       receivingPlayerID: [{ playerID: gamePlayerID }],

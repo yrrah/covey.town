@@ -98,16 +98,14 @@ export type UploadRequest = {
   name: string;
   token: string;
   coveyTownID: string;
+  bucketName: string;
 }
 
 export type UploadResponse = {
-  name: string;
-  fileName: string;
-}
-
-export type UploadError = {
   userError: boolean;
   message: string;
+  name?: string;
+  fileName?: string;
 }
 
 export default class TownsServiceClient {
@@ -160,10 +158,11 @@ export default class TownsServiceClient {
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
   }
 
-  async uploadFile(requestData: UploadRequest): Promise<UploadResponse | UploadError> {
+  async uploadFile(requestData: UploadRequest): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('townId', requestData.coveyTownID);
     formData.append('token', requestData.token);
+    formData.append('bucketName', requestData.bucketName);
     formData.append(requestData.name, requestData.file);
     try {
       const responseWrapper = await this._axios.post('/files', formData,{

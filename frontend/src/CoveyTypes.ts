@@ -2,7 +2,9 @@ import { Socket } from 'socket.io-client';
 import Player, { UserLocation } from './classes/Player';
 import TownsServiceClient from './classes/TownsServiceClient';
 
-export const SecretKeyIdentifier = 'generated_secret_key=';
+export const SECRET_KEY_IDENTIFIER = 'generated_secret_key=';
+
+export const GRIDFS_BUCKET_NAME = 'Uploads';
 
 export type CoveyEvent = 'playerMoved' | 'playerAdded' | 'playerRemoved';
 export type ChatType = 'public' | 'proximity' | 'private';

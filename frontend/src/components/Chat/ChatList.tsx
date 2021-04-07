@@ -1,6 +1,6 @@
 import React from 'react';
 import {Box, Container, Link, Text, Tooltip, VStack} from "@chakra-ui/react";
-import {ChatData, ChatState} from "../../CoveyTypes";
+import {ChatData, ChatState, GRIDFS_BUCKET_NAME} from "../../CoveyTypes";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
 
 export default function ChatList(props: { chatState: ChatState }): JSX.Element {
@@ -47,7 +47,7 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
       if (chat.fileName) {
         return (
           <Link display="flex"
-                href={`${process.env.REACT_APP_TOWNS_SERVICE_URL}/files/${chat.fileName}`}
+                href={`${process.env.REACT_APP_TOWNS_SERVICE_URL}/files/${GRIDFS_BUCKET_NAME}/${chat.fileName}`}
                 download={chat.message} target="_blank">
             {chat.message}
           </Link>)

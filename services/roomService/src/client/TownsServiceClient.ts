@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import assert from 'assert';
+import { StatusCodes } from 'http-status-codes';
 import { UserLocation } from '../CoveyTypes';
 
 
@@ -95,6 +96,21 @@ export type CoveyTownInfo = {
   maximumOccupancy: number
 };
 
+export type UploadRequest = {
+  file: File;
+  name: string;
+  token: string;
+  coveyTownID: string;
+  bucketName: string;
+};
+
+export type UploadResponse = {
+  userError: boolean;
+  message: string;
+  name?: string;
+  fileName?: string;
+};
+
 export default class TownsServiceClient {
   private _axios: AxiosInstance;
 
@@ -143,6 +159,32 @@ export default class TownsServiceClient {
   async joinTown(requestData: TownJoinRequest): Promise<TownJoinResponse> {
     const responseWrapper = await this._axios.post('/sessions', requestData);
     return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+  }
+
+  async uploadFile(requestData: UploadRequest): Promise<UploadResponse> {
+    const formData = new FormData();
+    formData.append('townId', requestData.coveyTownID);
+    formData.append('token', requestData.token);
+    formData.append('bucketName', requestData.bucketName);
+    formData.append(requestData.name, requestData.file);
+    try {
+      const responseWrapper = await this._axios.post('/files', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }});
+      return TownsServiceClient.unwrapOrThrowError(responseWrapper);
+    } catch (error){
+      if (error.response.status === StatusCodes.REQUEST_TOO_LONG){
+        return {userError: true, message: 'File must be smaller than 5MB.'};
+      }
+      if (error.response.status === StatusCodes.UNSUPPORTED_MEDIA_TYPE){
+        return {userError: true, message: 'Invalid file format.'};
+      }
+      if (error.response.status === StatusCodes.UNAUTHORIZED){
+        return {userError: true, message: 'Authentication failed.'};
+      }
+      return {userError: true, message: 'Error uploading file.'};
+    }
   }
 
 }

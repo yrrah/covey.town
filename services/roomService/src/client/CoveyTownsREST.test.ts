@@ -237,4 +237,23 @@ describe('TownsServiceAPIREST', () => {
 
     });
   });
+  describe('File Related Testing', () => {
+    it('Check for file upload', async () => {
+      const pubTown1 = await createTownForTesting(undefined, true);
+      const res = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: pubTown1.coveyTownID,
+      });
+      const testFileName = 'testFile_'.concat(nanoid()).concat('.txt');
+      const file = new File(['file contents'], testFileName);
+      const fileUploadRequest = await apiClient.uploadFile({
+        file,
+        name: testFileName,
+        token: res.coveySessionToken,
+        coveyTownID: pubTown1.coveyTownID,
+        bucketName: 'testBucket',
+      });
+      expect(fileUploadRequest.fileName === testFileName);
+    });
+  });
 });

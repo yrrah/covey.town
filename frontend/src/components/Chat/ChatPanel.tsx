@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState, useMemo } from 'react';
 import {Box, Flex, Input, Select, Spacer, useToast} from '@chakra-ui/react';
 import {Button} from "@material-ui/core";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
-import {ChatState, ChatType, ChatUpdate, ReceivingPlayerID} from "../../CoveyTypes";
+import {ChatState, ChatType, ChatUpdate, GRIDFS_BUCKET_NAME, ReceivingPlayerID} from "../../CoveyTypes";
 import ChatList from "./ChatList";
 import useMaybeVideo from '../../hooks/useMaybeVideo';
 
@@ -142,12 +142,13 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
         file,
         name: 'chatFile',
         token: sessionToken,
-        coveyTownID: currentTownID
+        coveyTownID: currentTownID,
+        bucketName: GRIDFS_BUCKET_NAME,
       });
-      if ('fileName' in response) {
+      if (response.name && response.fileName) {
         sendMessage(response.name, response.fileName)
       }
-      if ('userError' in response) {
+      if (response.userError) {
         toast({
           title: 'Unable to upload file',
           description: response.message,
