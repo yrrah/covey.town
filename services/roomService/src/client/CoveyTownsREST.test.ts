@@ -4,9 +4,13 @@ import http from 'http';
 import { nanoid } from 'nanoid';
 import assert from 'assert';
 import { AddressInfo } from 'net';
+import request from 'supertest';
 
 import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
+import {connectDb} from "../db";
+import {logError} from "../Utils";
+import addFileRoutes from "../router/files";
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -30,6 +34,7 @@ function expectTownListMatches(towns: TownListResponse, town: TestTownData) {
 describe('TownsServiceAPIREST', () => {
   let server: http.Server;
   let apiClient: TownsServiceClient;
+  let app: any;
 
   async function createTownForTesting(friendlyNameToUse?: string, isPublic = false): Promise<TestTownData> {
     const friendlyName = friendlyNameToUse !== undefined ? friendlyNameToUse :
@@ -47,11 +52,14 @@ describe('TownsServiceAPIREST', () => {
   }
 
   beforeAll(async () => {
-    const app = Express();
+    app = Express();
     app.use(CORS());
     server = http.createServer(app);
 
     addTownRoutes(server, app);
+    connectDb((err)=>{
+      if (err){ logError(err); } else { addFileRoutes('testing', app); }
+    });
     await server.listen();
     const address = server.address() as AddressInfo;
 
@@ -235,6 +243,21 @@ describe('TownsServiceAPIREST', () => {
       expect(res2.coveyUserID)
         .toBeDefined();
 
+    });
+  });
+  describe('File Related Testing', () => {
+    it('Check for file upload', async () => {
+      const pubTown1 = await createTownForTesting(undefined, true);
+      const res = await apiClient.joinTown({
+        userName: nanoid(),
+        coveyTownID: pubTown1.coveyTownID,
+      });
+      request(app)
+        .post('http://localhost:8081/upload')
+        .field('townId', pubTown1.coveyTownID)
+        .field('token', res.coveySessionToken)
+        .field('bucketName', 'testBucket')
+        .attach('file', 'src/client/testFiles/test.txt').expect(200)
     });
   });
 });

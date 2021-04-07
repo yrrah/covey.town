@@ -13,7 +13,7 @@ app.use(CORS());
 const server = http.createServer(app);
 
 connectDb((err)=>{
-  if (err){ logError(err); } else { addFileRoutes(app); }
+  if (err){ logError(err); } else { addFileRoutes('Uploads', app); }
 });
 
 const socket = addTownRoutes(server, app);

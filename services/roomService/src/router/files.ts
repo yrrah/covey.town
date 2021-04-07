@@ -5,10 +5,10 @@ import path from 'path';
 import mongo, { ObjectId } from 'mongodb';
 import Busboy from 'busboy';
 import { logError } from '../Utils';
-import db, { GRIDFS_BUCKET_NAME } from '../db';
+import db from '../db';
 import CoveyTownsStore from '../lib/CoveyTownsStore';
 
-export default function addFileRoutes(app: Express): void {
+export default function addFileRoutes(bucketName: string, app: Express): void {
 
   /**
    * Upload a file
@@ -64,7 +64,7 @@ export default function addFileRoutes(app: Express): void {
           res.sendStatus(StatusCodes.BAD_REQUEST);
         } else {
           const newFilename = nanoid() + path.extname(filename);
-          const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
+          const gfs = new mongo.GridFSBucket(db(), { bucketName });
           const ws = gfs.openUploadStream(newFilename, {
             // (TODO) tagged with townId so it's possible to clean up files when a town is closed
             metadata: {townId},
@@ -118,7 +118,7 @@ export default function addFileRoutes(app: Express): void {
    */
   app.get('/files/:fileName', async (req, res) => {
     try {
-      const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
+      const gfs = new mongo.GridFSBucket(db(), { bucketName });
       const cursor = gfs.find({ filename: req.params.fileName });
       cursor.toArray((error, docs) => {
         if (error){throw (error);}
@@ -143,7 +143,7 @@ export default function addFileRoutes(app: Express): void {
    */
   app.delete('/files/:fileId', async (req, res) => {
     try {
-      const gfs = new mongo.GridFSBucket(db(), { bucketName: GRIDFS_BUCKET_NAME });
+      const gfs = new mongo.GridFSBucket(db(), { bucketName });
       gfs.delete(new ObjectId(req.params.fileId), (err) => {
         if (err){ throw (err); }
         return res.status(StatusCodes.OK);
