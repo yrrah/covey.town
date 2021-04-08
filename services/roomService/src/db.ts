@@ -1,10 +1,12 @@
 import { Db, GridFSBucket, MongoClient, MongoError } from 'mongodb';
 import assert from 'assert';
+import dotenv from 'dotenv';
 
 let database: Db | undefined;
 let client: MongoClient | undefined;
 const DB_NAME = 'coveydb';
 export const GRIDFS_BUCKET_NAME = 'Uploads';
+dotenv.config();
 
 /**
  * Establish a connection to MongoDB server. This connection will be shared/reused for the lifetime of the server.
