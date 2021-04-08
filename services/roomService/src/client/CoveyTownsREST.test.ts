@@ -12,6 +12,8 @@ import {connectDb} from "../db";
 import addFileRoutes from "../router/files";
 import dotenv from 'dotenv';
 
+dotenv.config()
+
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
   isPubliclyListed: boolean, townUpdatePassword: string
@@ -53,7 +55,6 @@ describe('TownsServiceAPIREST', () => {
   }
 
   beforeAll(async () => {
-    dotenv.config()
     app = Express();
     app.use(CORS());
     server = http.createServer(app);
