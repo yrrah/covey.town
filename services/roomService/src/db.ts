@@ -11,6 +11,7 @@ export const GRIDFS_BUCKET_NAME = 'Uploads';
  * @param callback called after trying to connect
  */
 export function connectDb(callback: (err?: Error | undefined) => void): void {
+  assert(process.env.TWILIO_ACCOUNT_SID);
   if (!client) {
     assert(process.env.MONGO_URI,
       'Environmental variable MONGO_URI must be set');
