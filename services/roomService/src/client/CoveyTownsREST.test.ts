@@ -8,9 +8,11 @@ import request from 'supertest';
 
 import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
-import {connectDb} from "../db";
+import {closeDb, connectDb, emptyGridFS} from "../db";
 import addFileRoutes from "../router/files";
 import dotenv from 'dotenv';
+import {logError} from "../Utils";
+import io from 'socket.io';
 
 dotenv.config()
 
@@ -38,6 +40,7 @@ describe('TownsServiceAPIREST', () => {
   let apiClient: TownsServiceClient;
   let app: any;
   let address: AddressInfo;
+  let socket: io.Server;
 
   async function createTownForTesting(friendlyNameToUse?: string, isPublic = false): Promise<TestTownData> {
     const friendlyName = friendlyNameToUse !== undefined ? friendlyNameToUse :
@@ -55,14 +58,12 @@ describe('TownsServiceAPIREST', () => {
   }
 
   beforeAll(async () => {
-
-    console.log(JSON.stringify(process.env))
     app = Express();
     app.use(CORS());
     server = http.createServer(app);
 
-    addTownRoutes(server, app);
-    addFileRoutes('testing', app);
+    socket = addTownRoutes(server, app);
+    addFileRoutes('Uploads', app);
 
 
     await server.listen();
@@ -77,7 +78,18 @@ describe('TownsServiceAPIREST', () => {
     });
   });
   afterAll(async () => {
+    socket.close();
     await server.close();
+    await new Promise<void>(resolve => {
+      emptyGridFS((gridErr) => {
+        if (gridErr) { logError(gridErr); }
+        closeDb((dbErr) => {
+          if (dbErr) { logError(dbErr); }
+          console.log(`DB disconnected`);
+          resolve();
+        });
+      });
+    });
   });
   describe('CoveyTownCreateAPI', () => {
     it('Allows for multiple towns with the same friendlyName', async () => {
