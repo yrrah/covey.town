@@ -10,6 +10,7 @@ import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
 import {connectDb} from "../db";
 import addFileRoutes from "../router/files";
+import dotenv from 'dotenv';
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -52,6 +53,7 @@ describe('TownsServiceAPIREST', () => {
   }
 
   beforeAll(async () => {
+    dotenv.config()
     app = Express();
     app.use(CORS());
     server = http.createServer(app);
