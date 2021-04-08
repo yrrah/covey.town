@@ -55,6 +55,8 @@ describe('TownsServiceAPIREST', () => {
   }
 
   beforeAll(async () => {
+
+    console.log(JSON.stringify(process.env))
     app = Express();
     app.use(CORS());
     server = http.createServer(app);
