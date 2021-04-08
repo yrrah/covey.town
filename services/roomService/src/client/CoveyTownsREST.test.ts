@@ -9,7 +9,6 @@ import request from 'supertest';
 import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
 import {connectDb} from "../db";
-import {logError} from "../Utils";
 import addFileRoutes from "../router/files";
 
 type TestTownData = {
@@ -35,6 +34,7 @@ describe('TownsServiceAPIREST', () => {
   let server: http.Server;
   let apiClient: TownsServiceClient;
   let app: any;
+  let address: AddressInfo;
 
   async function createTownForTesting(friendlyNameToUse?: string, isPublic = false): Promise<TestTownData> {
     const friendlyName = friendlyNameToUse !== undefined ? friendlyNameToUse :
@@ -57,13 +57,19 @@ describe('TownsServiceAPIREST', () => {
     server = http.createServer(app);
 
     addTownRoutes(server, app);
-    connectDb((err)=>{
-      if (err){ logError(err); } else { addFileRoutes('testing', app); }
-    });
-    await server.listen();
-    const address = server.address() as AddressInfo;
+    addFileRoutes('testing', app);
 
-    apiClient = new TownsServiceClient(`http://127.0.0.1:${address.port}`);
+
+    await server.listen();
+    address = server.address() as AddressInfo;
+    if(address){
+      // eslint-disable-next-line no-console
+      console.log(`Listening on ${address.port}`);
+      apiClient = new TownsServiceClient(`http://127.0.0.1:${address.port}`);
+    }
+    return new Promise<void>(resolve => {
+      connectDb(() => {console.log(`DB connected`); resolve();});
+    });
   });
   afterAll(async () => {
     await server.close();
@@ -246,18 +252,17 @@ describe('TownsServiceAPIREST', () => {
     });
   });
   describe('File Related Testing', () => {
-    it('Check for file upload', async () => {
+    it('Check for file upload', async (done) => {
       const pubTown1 = await createTownForTesting(undefined, true);
       const res = await apiClient.joinTown({
         userName: nanoid(),
         coveyTownID: pubTown1.coveyTownID,
       });
-      request(app)
-        .post('http://localhost:8081/upload')
+      request(`http://127.0.0.1:${(address as AddressInfo).port}`)
+        .post(`/files`)
         .field('townId', pubTown1.coveyTownID)
         .field('token', res.coveySessionToken)
-        .field('bucketName', 'testBucket')
-        .attach('file', 'src/client/testFiles/test.txt').expect(200)
+        .attach('chatFile', 'src/client/testFiles/test.txt').expect(200, done)
     });
   });
 });
