@@ -12,11 +12,9 @@ export const GRIDFS_BUCKET_NAME = 'Uploads';
  */
 export function connectDb(callback: (err?: Error | undefined) => void): void {
   if (!client) {
-    assert(process.env.TWILIO_ACCOUNT_SID,
-      'Environmental variable TWILIO_ACCOUNT_SID must be set');
-    assert(process.env.TWILIO_API_KEY_SECRET,
-      'Environmental variable TWILIO_API_KEY_SECRET must be set');
-    client = new MongoClient(`mongodb+srv://${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_API_KEY_SECRET}@coveycluster.333xb.mongodb.net`, {
+    assert(process.env.MONGO_URI,
+      'Environmental variable MONGO_URI must be set');
+    client = new MongoClient(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
