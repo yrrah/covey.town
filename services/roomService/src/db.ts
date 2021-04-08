@@ -14,9 +14,9 @@ dotenv.config();
  */
 export function connectDb(callback: (err?: Error | undefined) => void): void {
   if (!client) {
-    assert(process.env.MONGO_CONNECT,
-      'Environmental variable MONGO_CONNECT must be set');
-    client = new MongoClient(process.env.MONGO_CONNECT, {
+    assert(process.env.REACT_APP_MONGO_CONNECT,
+      'Environmental variable REACT_APP_MONGO_CONNECT must be set');
+    client = new MongoClient(process.env.REACT_APP_MONGO_CONNECT, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

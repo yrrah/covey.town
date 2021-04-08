@@ -47,7 +47,7 @@ To create an account and configure your local environment:
 >
 >| Config Value            | Description                               |
 >| ----------------------- | ----------------------------------------- |
->| `MONGO_CONNECT     `    | Connection string for MongoDB Atlas       |
+>| `REACT_APP_MONGO_CONNECT| Connection string for MongoDB Atlas       |
 >*Alternatively you could set up a self-managed MongoDB database
 
 ### Starting the backend
