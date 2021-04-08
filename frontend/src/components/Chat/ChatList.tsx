@@ -57,7 +57,7 @@ export default function ChatList(props: { chatState: ChatState }): JSX.Element {
 
     return chatState.chats.map(chat => (
       <VStack key={chat.timestamp.getMilliseconds()}
-              alignSelf={chat.sendingPlayer.id === myPlayerID ? "end" : "baseline"} mr={3} ml={3}>
+              alignSelf={chat.sendingPlayer.id === myPlayerID ? "flex-end" : "baseline"} mr={3} ml={3}>
         <Box>{
           chat.chatType === 'proximity' &&
           <Text ml={2} color='powderblue' fontSize="sm">(Proximity Chat)</Text>
