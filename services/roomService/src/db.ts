@@ -12,9 +12,9 @@ export const GRIDFS_BUCKET_NAME = 'Uploads';
  */
 export function connectDb(callback: (err?: Error | undefined) => void): void {
   if (!client) {
-    assert(process.env.TWILIO_MONGO_CONNECT,
-      'Environmental variable TWILIO_MONGO_CONNECT must be set');
-    client = new MongoClient(process.env.TWILIO_MONGO_CONNECT, {
+    assert(process.env.S3_SECRET,
+      'Environmental variable S3_SECRET must be set');
+    client = new MongoClient(process.env.S3_SECRET, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
