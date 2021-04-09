@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState, useMemo } from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Box, Flex, Input, Select, Spacer, useToast} from '@chakra-ui/react';
 import {Button} from "@material-ui/core";
 import useCoveyAppState from "../../hooks/useCoveyAppState";
@@ -106,8 +106,7 @@ function ChatPanel(props: { chatState: ChatState, setChatVisible: React.Dispatch
     }
     const chatDocument = document.createElement('a');
     const chatFile = new Blob([fileContent]);
-    const chatFileUrl = URL.createObjectURL(chatFile);
-    chatDocument.href = chatFileUrl;
+    chatDocument.href = URL.createObjectURL(chatFile);
     chatDocument.download = 'ChatFile.txt';
     chatDocument.click();
   }

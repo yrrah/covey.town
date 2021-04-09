@@ -4,7 +4,8 @@ import assert from 'assert';
 let database: Db | undefined;
 let client: MongoClient | undefined;
 const DB_NAME = 'coveydb';
-export const GRIDFS_BUCKET_NAME = 'Uploads';
+export const PROD_BUCKET_NAME = 'Uploads';
+export const TEST_BUCKET_NAME = 'Test';
 
 /**
  * Establish a connection to MongoDB server. This connection will be shared/reused for the lifetime of the server.
@@ -41,9 +42,9 @@ export default function db():Db {
 /**
  * Drops the file storage database. This should be called when the server shuts down to clean up the database.
  */
-export function emptyGridFS(callback: (err?: Error | undefined) => void):void{
+export function dropBucket(bucketName: string, callback: (err?: (Error | undefined)) => void):void{
   if (database) {
-    const bucket = new GridFSBucket(db(), {bucketName: GRIDFS_BUCKET_NAME});
+    const bucket = new GridFSBucket(db(), {bucketName});
     bucket.drop(callback);
   } else {
     callback();

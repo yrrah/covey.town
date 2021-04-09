@@ -139,7 +139,7 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
   });
 
   /**
-   * Delete a file
+   * Delete a file TODO this endpoint isn't used for anything
    */
   app.delete('/files/:fileId', async (req, res) => {
     try {

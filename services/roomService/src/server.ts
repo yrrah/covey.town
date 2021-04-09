@@ -6,14 +6,14 @@ import addTownRoutes from './router/towns';
 import CoveyTownsStore from './lib/CoveyTownsStore';
 import addFileRoutes from './router/files';
 import { logError } from './Utils';
-import { connectDb, dbConnected, emptyGridFS, closeDb } from './db';
+import { connectDb, dbConnected, dropBucket, closeDb, PROD_BUCKET_NAME } from './db';
 
 const app = Express();
 app.use(CORS());
 const server = http.createServer(app);
 
 connectDb((err)=>{
-  if (err){ logError(err); } else { addFileRoutes('Uploads', app); }
+  if (err){ logError(err); } else { addFileRoutes(PROD_BUCKET_NAME, app); }
 });
 
 const socket = addTownRoutes(server, app);
@@ -37,10 +37,14 @@ function cleanUp(eventType: string){
     socket.close();
     server.close();
     if (dbConnected()) {
-      emptyGridFS((gridErr) => {
-        if (gridErr) { logError(gridErr); }
+      dropBucket(PROD_BUCKET_NAME, (gridErr) => {
+        if (gridErr) {
+          logError(gridErr);
+        }
         closeDb((dbErr) => {
-          if (dbErr) { logError(dbErr); }
+          if (dbErr) {
+            logError(dbErr);
+          }
         });
       });
     }

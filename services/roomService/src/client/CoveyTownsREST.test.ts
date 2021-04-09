@@ -8,13 +8,10 @@ import request from 'supertest';
 
 import TownsServiceClient, { TownListResponse } from './TownsServiceClient';
 import addTownRoutes from '../router/towns';
-import {closeDb, connectDb, emptyGridFS} from "../db";
+import {closeDb, connectDb, dropBucket, TEST_BUCKET_NAME} from "../db";
 import addFileRoutes from "../router/files";
-import dotenv from 'dotenv';
 import {logError} from "../Utils";
 import io from 'socket.io';
-
-dotenv.config()
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -61,31 +58,30 @@ describe('TownsServiceAPIREST', () => {
     app = Express();
     app.use(CORS());
     server = http.createServer(app);
-
     socket = addTownRoutes(server, app);
-    addFileRoutes('Uploads', app);
-
+    addFileRoutes(TEST_BUCKET_NAME, app);
 
     await server.listen();
     address = server.address() as AddressInfo;
     if(address){
-      // eslint-disable-next-line no-console
-      console.log(`Listening on ${address.port}`);
       apiClient = new TownsServiceClient(`http://127.0.0.1:${address.port}`);
     }
     return new Promise<void>(resolve => {
-      connectDb(() => {console.log(`DB connected`); resolve();});
+      connectDb(() => {resolve();});
     });
   });
   afterAll(async () => {
     socket.close();
     await server.close();
     await new Promise<void>(resolve => {
-      emptyGridFS((gridErr) => {
-        if (gridErr) { logError(gridErr); }
+      dropBucket(TEST_BUCKET_NAME, (gridErr) => {
+        if (gridErr) {
+          logError(gridErr);
+        }
         closeDb((dbErr) => {
-          if (dbErr) { logError(dbErr); }
-          console.log(`DB disconnected`);
+          if (dbErr) {
+            logError(dbErr);
+          }
           resolve();
         });
       });
@@ -275,7 +271,7 @@ describe('TownsServiceAPIREST', () => {
         userName: nanoid(),
         coveyTownID: pubTown1.coveyTownID,
       });
-      request(`http://127.0.0.1:${(address as AddressInfo).port}`)
+      request(app)
         .post(`/files`)
         .field('townId', pubTown1.coveyTownID)
         .field('token', res.coveySessionToken)
