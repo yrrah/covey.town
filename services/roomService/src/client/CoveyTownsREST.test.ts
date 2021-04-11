@@ -303,7 +303,7 @@ describe('TownsServiceAPIREST', () => {
         .post(`/files`)
         .field('townId', townID)
         .field('token', token)
-        .attach('chatFile', 'src/client/testFiles/test.js')
+        .attach('chatFile', 'src/client/testFiles/no-op.js')
         .expect(StatusCodes.UNSUPPORTED_MEDIA_TYPE, done)
     });
     it('Check block oversize file', async (done) => {
