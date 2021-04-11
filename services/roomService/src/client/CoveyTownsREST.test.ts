@@ -12,6 +12,8 @@ import {closeDb, connectDb, dropBucket, TEST_BUCKET_NAME} from "../db";
 import addFileRoutes from "../router/files";
 import {logError} from "../Utils";
 import io from 'socket.io';
+import {StatusCodes} from "http-status-codes";
+import * as fs from "fs";
 
 type TestTownData = {
   friendlyName: string, coveyTownID: string,
@@ -265,17 +267,115 @@ describe('TownsServiceAPIREST', () => {
     });
   });
   describe('File Related Testing', () => {
-    it('Check for file upload', async (done) => {
+    let townID:string;
+    let token:string;
+    beforeAll(async () => {
       const pubTown1 = await createTownForTesting(undefined, true);
       const res = await apiClient.joinTown({
         userName: nanoid(),
         coveyTownID: pubTown1.coveyTownID,
       });
+      townID = pubTown1.coveyTownID;
+      token = res.coveySessionToken;
+    });
+    it('Check normal upload and download', async (done) => {
       request(app)
         .post(`/files`)
-        .field('townId', pubTown1.coveyTownID)
-        .field('token', res.coveySessionToken)
-        .attach('chatFile', 'src/client/testFiles/test.txt').expect(200, done)
+        .field('townId', townID)
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.OK)
+        .then(response => {
+          assert(response.body.response.name === 'small_test.txt')
+          const newName = response.body.response.fileName
+          request(app)
+            .get(`/files/${newName}`)
+            .expect(StatusCodes.OK)
+            .then(response => {
+              const file_text = fs.readFileSync('src/client/testFiles/small_test.txt');
+              assert(response.text === file_text.toString());
+              done();
+            })
+        })
+    });
+    it('Check block executable file', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/test.js')
+        .expect(StatusCodes.UNSUPPORTED_MEDIA_TYPE, done)
+    });
+    it('Check block oversize file', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/too_big_file.txt')
+        .expect(StatusCodes.REQUEST_TOO_LONG, done)
+    });
+    it('Check reject invalid token', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token + 'invalid')
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.UNAUTHORIZED, done)
+    });
+    it('Check reject invalid town', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID + 'invalid')
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.UNAUTHORIZED, done)
+    });
+    it('Check reject missing token', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID + 'invalid')
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.UNAUTHORIZED, done)
+    });
+    it('Check reject missing town', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.UNAUTHORIZED, done)
+    });
+    it('Check reject missing file', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token)
+        .expect(StatusCodes.BAD_REQUEST, done)
+    });
+    it('Check reject misnamed file field', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token)
+        .attach('wrongName', 'src/client/testFiles/small_test.txt')
+        .expect(StatusCodes.BAD_REQUEST, done)
+    });
+    it('Check ignore second file', async (done) => {
+      request(app)
+        .post(`/files`)
+        .field('townId', townID)
+        .field('token', token)
+        .attach('chatFile', 'src/client/testFiles/small_test.txt')
+        .attach('chatFile', 'src/client/testFiles/too_big_file.txt')
+        .expect(StatusCodes.OK)
+        .then(response => {
+          assert(response.body.response.name === 'small_test.txt')
+          done();
+        })
+    });
+    it('Check get wrong file name', async (done) => {
+      request(app)
+        .get(`/files/invalid`)
+        .expect(StatusCodes.NOT_FOUND, done)
     });
   });
 });

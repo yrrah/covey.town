@@ -2,7 +2,7 @@ import { Express } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { nanoid } from 'nanoid';
 import path from 'path';
-import mongo, { ObjectId } from 'mongodb';
+import mongo from 'mongodb';
 import Busboy from 'busboy';
 import { logError } from '../Utils';
 import db from '../db';
@@ -19,11 +19,12 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
         headers: req.headers,
         limits : {
           files : 1,
-          fileSize : 5242880, // 5mb
+          fileSize : 5000000, // 5mb
         },
       });
       let townId = '';
       let authorized = false;
+      let uploading = false;
       busboy.on('field', (fieldname, val) => {
         if (fieldname === 'townId'){ townId = val;}
       });
@@ -63,6 +64,7 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
         } else if (fieldname !== 'chatFile') {
           res.sendStatus(StatusCodes.BAD_REQUEST);
         } else {
+          uploading = true;
           const newFilename = nanoid() + path.extname(filename);
           const gfs = new mongo.GridFSBucket(db(), { bucketName });
           const ws = gfs.openUploadStream(newFilename, {
@@ -94,6 +96,11 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
           res.sendStatus(StatusCodes.BAD_REQUEST);
         }
       });
+      busboy.on('finish', () => {
+        if (!uploading) {
+          res.sendStatus(StatusCodes.BAD_REQUEST);
+        }
+      });
       req.pipe(busboy);
     } catch (err) {
       if (!res.headersSent) {
@@ -102,13 +109,13 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
         } else if (err.message.includes('Unsupported content type')) {
           res.sendStatus(StatusCodes.UNSUPPORTED_MEDIA_TYPE);
         } else {
+          logError(err);
           res.status(StatusCodes.INTERNAL_SERVER_ERROR)
             .json({
               message: 'Internal server error, please see log in server for more details',
             });
         }
       }
-      logError(err);
     }
   });
 
@@ -119,34 +126,18 @@ export default function addFileRoutes(bucketName: string, app: Express): void {
   app.get('/files/:fileName', async (req, res) => {
     try {
       const gfs = new mongo.GridFSBucket(db(), { bucketName });
-      const cursor = gfs.find({ filename: req.params.fileName });
+      const cursor = gfs.find({ filename: req.params.fileName.toString().replace('$', '') });
       cursor.toArray((error, docs) => {
         if (error){throw (error);}
-        if (docs.length < 1){throw (new Error('File not found.'));}
+        if (docs.length < 1){
+          res.sendStatus(StatusCodes.NOT_FOUND);
+          return;
+        }
         const file = docs[0];
         res.set('Content-Type', file.contentType);
         res.set('X-Content-Type-Options', 'nosniff');
         res.set('Content-Disposition', `attachment; filename="${  file.filename  }"`);
         gfs.openDownloadStream(file._id).pipe(res);
-      });
-    } catch (err) {
-      logError(err);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({
-          message: 'Internal server error, please see log in server for more details',
-        });
-    }
-  });
-
-  /**
-   * Delete a file TODO this endpoint isn't used for anything
-   */
-  app.delete('/files/:fileId', async (req, res) => {
-    try {
-      const gfs = new mongo.GridFSBucket(db(), { bucketName });
-      gfs.delete(new ObjectId(req.params.fileId), (err) => {
-        if (err){ throw (err); }
-        return res.status(StatusCodes.OK);
       });
     } catch (err) {
       logError(err);
