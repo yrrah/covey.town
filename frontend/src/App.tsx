@@ -1,19 +1,14 @@
 import React, {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState
+  Dispatch, SetStateAction, useCallback, useEffect, useMemo, useReducer, useState,
 } from 'react';
 import './App.css';
 import { BrowserRouter } from 'react-router-dom';
-import { ChakraProvider} from '@chakra-ui/react';
+import { io } from 'socket.io-client';
+import { ChakraProvider } from '@chakra-ui/react';
 import { MuiThemeProvider } from '@material-ui/core/styles';
-import assert from "assert";
-import { io } from "socket.io-client";
+import assert from 'assert';
 import VideoContext from './contexts/VideoContext';
+import Login from './components/Login/Login';
 import CoveyAppContext from './contexts/CoveyAppContext';
 import NearbyPlayersContext from './contexts/NearbyPlayersContext';
 import AppStateProvider, { useAppState } from './components/VideoCall/VideoFrontend/state';
@@ -24,19 +19,17 @@ import { VideoProvider } from './components/VideoCall/VideoFrontend/components/V
 import ErrorDialog from './components/VideoCall/VideoFrontend/components/ErrorDialog/ErrorDialog';
 import theme from './components/VideoCall/VideoFrontend/theme';
 import { Callback } from './components/VideoCall/VideoFrontend/types';
+import Player, { ServerPlayer, UserLocation } from './classes/Player';
+import { TownJoinResponse } from './classes/TownsServiceClient';
 import Video from './classes/Video/Video';
-import { appStateReducer, defaultAppState } from "./components/Town/TownLogic";
-import TownPage from "./components/Town/TownPage";
-import { TownJoinResponse } from "./classes/TownsServiceClient";
-import Login from "./components/Login/Login";
-import { chatStateReducer, defaultChatState } from "./components/Chat/ChatLogic";
-import {ChatData, ChatUpdate, CoveyAppUpdate} from "./CoveyTypes";
-
-import Player, {ServerPlayer, UserLocation} from "./classes/Player";
+import { appStateReducer, defaultAppState } from './components/Town/TownLogic';
+import TownPage from './components/Town/TownPage';
+import { chatStateReducer, defaultChatState } from './components/Chat/ChatLogic';
+import { ChatData, ChatUpdate, CoveyAppUpdate } from './CoveyTypes';
 
 async function GameController(initData: TownJoinResponse,
-                                     dispatchAppUpdate: (update: CoveyAppUpdate) => void,
-                                     updateChat: (message: ChatUpdate) => void):Promise<boolean>{
+                              dispatchAppUpdate: (update: CoveyAppUpdate) => void,
+                              updateChat: (message: ChatUpdate) => void):Promise<boolean>{
   // Now, set up the game sockets
   const gamePlayerID = initData.coveyUserID;
   const sessionToken = initData.coveySessionToken;
@@ -63,8 +56,8 @@ async function GameController(initData: TownJoinResponse,
     dispatchAppUpdate({ action: 'playerDisconnect', player: Player.fromServerPlayer(player) });
   });
   socket.on('disconnect', () => {
-    dispatchAppUpdate({action: 'disconnect'});
-    updateChat({action: 'disconnect'});
+    dispatchAppUpdate({ action: 'disconnect' });
+    updateChat({ action: 'disconnect' });
   });
   const emitMovement = (location: UserLocation) => {
     socket.emit('playerMovement', location);
@@ -113,14 +106,6 @@ async function GameController(initData: TownJoinResponse,
 function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefined>> }) {
   const [appState, dispatchAppUpdate] = useReducer(appStateReducer, defaultAppState());
   const [chatState, updateChatState] = useReducer(chatStateReducer, defaultChatState());
-  const { setOnDisconnect } = props;
-
-  useEffect(() => {
-    setOnDisconnect(() => async () => { // Here's a great gotcha: https://medium.com/swlh/how-to-store-a-function-with-the-usestate-hook-in-react-8a88dd4eede1
-      dispatchAppUpdate({ action: 'disconnect' });
-      return Video.teardown();
-    });
-  }, [dispatchAppUpdate, setOnDisconnect]);
 
   const setupGameController = useCallback(async (initData: TownJoinResponse) => {
     await GameController(initData, dispatchAppUpdate, updateChatState);
@@ -128,17 +113,25 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
   }, [dispatchAppUpdate]);
   const videoInstance = Video.instance();
 
+  const { setOnDisconnect } = props;
+  useEffect(() => {
+    setOnDisconnect(() => async () => { // Here's a great gotcha: https://medium.com/swlh/how-to-store-a-function-with-the-usestate-hook-in-react-8a88dd4eede1
+      dispatchAppUpdate({ action: 'disconnect' });
+      return Video.teardown();
+    });
+  }, [dispatchAppUpdate, setOnDisconnect]);
+
   const page = useMemo(() => {
     if (!appState.sessionToken) {
-      return <Login doLogin={setupGameController}/>;
-    }
-    if (!videoInstance) {
+      return <Login doLogin={setupGameController} />;
+    } if (!videoInstance) {
       return <div>Loading...</div>;
     }
     return  <TownPage chatState={chatState} updateChatState={updateChatState} />
   }, [ chatState, setupGameController, appState.sessionToken, videoInstance ]);
 
   return (
+
     <CoveyAppContext.Provider value={appState}>
       <VideoContext.Provider value={Video.instance()}>
         <NearbyPlayersContext.Provider value={appState.nearbyPlayers}>
@@ -146,6 +139,7 @@ function App(props: { setOnDisconnect: Dispatch<SetStateAction<Callback | undefi
         </NearbyPlayersContext.Provider>
       </VideoContext.Provider>
     </CoveyAppContext.Provider>
+
   );
 }
 

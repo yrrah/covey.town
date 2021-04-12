@@ -51,6 +51,7 @@ function cleanUp(eventType: string){
   }
 }
 
+// https://stackoverflow.com/a/49392671/2585800
 ['SIGINT', 'SIGUSR1', 'SIGUSR2', 'SIGTERM', 'SIGHUP', 'SIGQUIT'].forEach((eventType: string) => {
   process.on(eventType, () => cleanUp(eventType));
 });

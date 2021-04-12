@@ -23,7 +23,6 @@ const Container = styled('div')({
 
 const Main = styled('main')(({ theme: _theme }: { theme: Theme }) => ({
   overflow: 'hidden',
-  // position: 'relative',
 }));
 
 interface Props {
