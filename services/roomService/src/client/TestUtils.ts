@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import {io, Socket} from 'socket.io-client';
 import {Socket as ServerSocket} from 'socket.io';
 
@@ -31,7 +30,7 @@ export function generateTestMessage(): ChatData {
   return {
     message: nanoid(),
     timestamp: new Date(),
-    sendingPlayer: { id: nanoid(), userName: 'username' }, 
+    sendingPlayer: { id: nanoid(), userName: 'username' },
     chatType: 'public',
   };
 }
