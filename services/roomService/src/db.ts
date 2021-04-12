@@ -7,6 +7,8 @@ const DB_NAME = 'coveydb';
 export const PROD_BUCKET_NAME = 'Uploads';
 export const TEST_BUCKET_NAME = 'Test';
 
+// based on http://oak.cs.ucla.edu/classes/cs144/mongo/mongo-node.html
+
 /**
  * Establish a connection to MongoDB server. This connection will be shared/reused for the lifetime of the server.
  * @param callback called after trying to connect
