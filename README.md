@@ -1,5 +1,6 @@
 # Covey.Town
-
+> This is a fork for [Group 35's Project Submission (github)](https://github.com/yrrah/covey.town)  
+> 
 Covey.Town provides a virtual meeting space where different groups of people can have simultaneous video calls, allowing participants to drift between different conversations, just like in real life.
 Covey.Town was built for Northeastern's [Spring 2021 software engineering course](https://neu-se.github.io/CS4530-CS5500-Spring-2021/), and is designed to be reused across semesters.
 You can view our reference deployment of the app at [app.covey.town](https://app.covey.town/).
@@ -48,6 +49,7 @@ To create an account and configure your local environment:
 >| Config Value            | Description                               |
 >| ----------------------- | ----------------------------------------- |
 >| MONGO_URI               | Connection string for MongoDB Atlas       |  
+>
 >*Alternatively you could set up a self-managed MongoDB database
 
 ### Starting the backend
