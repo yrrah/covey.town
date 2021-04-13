@@ -40,7 +40,7 @@ To create an account and configure your local environment:
 >
 >1. Create a database called 'coveydb' on an M0 cluster
 >2. Under 'Network Access', select 'Add IP Address' and 'ALLOW ACCESS FROM ANYWHERE'
->2. Under Database Access, create a new database user (copy the password) and in Database user privileges select Grant specific privileges. 
+>2. Under Database Access, create a new database user and in Database user privileges select Grant specific privileges. 
 >Add 'readWrite' @ 'coveydb' as the role
 >3. On the cluster dashboard click 'CONNECT', then 'Connect your application'
 >4. Copy the connection uri into a new variable in your '.env' file
