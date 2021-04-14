@@ -71,3 +71,9 @@
 
 7) components/Chat/ChatPanel.tsx  
 >• Added this component that is the main chat window  
+
+8) Dependencies Added
+>• buffer  
+>• crypto-js  
+>• http-status-codes  
+
