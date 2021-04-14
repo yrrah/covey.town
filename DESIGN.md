@@ -45,6 +45,29 @@
 ## Frontend
 
 1) App.tsx
->• Moved CoveyAppState logic (unmodified) to Town/TownLogic.ts  
->• Moved the town page to Town/TownPage.tsx  
->• In the GameController function, added setup of a chatStateReducer that can communicate with the socket  
+>• Moved CoveyAppState logic (unmodified) to components/Town/TownLogic.ts  
+>• Moved the town page to components/Town/TownPage.tsx  
+>• In the GameController function, added setup of a chatStateReducer similar to appStateReducer (ChatLogic.ts)
+
+2) components/Town/TownPage.tsx
+>• Pulled MenuBar component up out of VideoOverlay and moved it to the top of the page
+>• Added collapisble chat window (ChatPanel.tsx)
+>• Added a menu button for chat that gets passed to MenuBar as a prop
+
+3) components/Town/WorldMap.ts
+>• moved from components/world folder  
+>• [changed scaling](https://github.com/yrrah/covey.town/blob/e3ff46acd87158677948ebb37f87dcd428880a35/frontend/src/components/Town/WorldMap.tsx#L444) of the game map so that it would be responsive to the chat opening or window resizing
+
+4) components/VideoCall/VideoFrontend/components/MenuBar/MenuBar.tsx
+>• moved instantiation of this menu from VideoOverlay.tsx to TownPage.tsx  
+>• added a chat button  
+>• made the menu collapsible and responsive to chat opening and window resizing  
+
+5) components/VideoCall/VideoFrontend/components/SnackBar/Snackbar.tsx  
+>• changed display location to top left so it doesn't cover up chat   
+
+6) components/Chat/ChatLogic.ts  
+>• Added this file that handles communication with the socket for chat messages  
+
+7) components/Chat/ChatPanel.tsx  
+>• Added this component that is the main chat window  
