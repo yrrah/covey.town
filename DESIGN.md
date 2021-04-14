@@ -89,9 +89,13 @@
 
 8) ChatCrypto.ts
 >• Added this file that handles the encryption and decryption of private and proximity messages
+>
 >• Makes use of AES encryption as the encryption algorithm
+>
 >• For encryption, a random key is generated which is used to encrypt the message. The key is then concatenated with a key identifier, and the entity as a whole is encrypted using the receiving players player IDs. The encrypted entity is stored in the secretkey set of the payload.
+>
 >• For decryption, the client uses their ID to decrypt the entities in the secretkey set from the payload. When the secretkey identifier is found, the secretkey from the decrypted entity is extracted and used to decrypt the message.
+>
 >• This strategy of encryption, allows encryption of messages using multiple keys and decryption using any one of those keys.
 
 9) Dependencies Added
