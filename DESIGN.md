@@ -25,7 +25,7 @@
 
 >• On receiving the 'newChatMessage' by the socket, the controller [calls the sendChatMessage function](https://github.com/yrrah/covey.town/blob/09865aef29a82139b19351ea53e1dd641278a7ba/services/roomService/src/requestHandlers/CoveyTownRequestHandlers.ts#L239-L243) to send the chat data to all the listeners connected to that controller.
 
-5) router/files.ts
+5) files.ts
 >• Added this file containing REST endpoints for file upload & download
 
 6) db.ts 
@@ -42,6 +42,23 @@
 >• mongodb  
 >• supertest  
 
+### Backend Tests
+
+1) CoveyTownController.test.ts
+>• [Notifies](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L71-L78) added listeners that a new message is sent.
+>• [Does not notify](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L115-L124) removed listener when a new message is sent
+>• [Emits 'newChatMessage'](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L195-L202) to the socekt when a player sends a message.
+>• [Forwards player messages](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L266-L280) to subscribed listeners.
+
+2) CoveyTownController.test.ts
+>• [Dispatches message updates](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/client/CoveyTownsSocket.test.ts#L81-L96) to all the clients in the same town.
+
+2) CoveyTownsSocket.test.ts
+>• [Dispatches message updates](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/client/CoveyTownsSocket.test.ts#L81-L96) to all the clients in the same town.
+
+3) CoveyTownsREST.test.ts
+>• [File related testing](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/client/CoveyTownsREST.test.ts#L269-L380)
+
 ## Frontend
 
 1) App.tsx
@@ -49,31 +66,42 @@
 >• Moved the town page to components/Town/TownPage.tsx  
 >• In the GameController function, added setup of a chatStateReducer similar to appStateReducer (ChatLogic.ts)
 
-2) components/Town/TownPage.tsx
+2) TownPage.tsx
 >• Pulled MenuBar component up out of VideoOverlay and moved it to the top of the page
 >• Added collapisble chat window (ChatPanel.tsx)
 >• Added a menu button for chat that gets passed to MenuBar as a prop
 
-3) components/Town/WorldMap.ts
+3) WorldMap.ts
 >• moved from components/world folder  
 >• [changed scaling](https://github.com/yrrah/covey.town/blob/e3ff46acd87158677948ebb37f87dcd428880a35/frontend/src/components/Town/WorldMap.tsx#L444) of the game map so that it would be responsive to the chat opening or window resizing
 
-4) components/VideoCall/VideoFrontend/components/MenuBar/MenuBar.tsx
+4) MenuBar.tsx
 >• moved instantiation of this menu from VideoOverlay.tsx to TownPage.tsx  
 >• added a chat button  
 >• made the menu collapsible and responsive to chat opening and window resizing  
 
-5) components/VideoCall/VideoFrontend/components/SnackBar/Snackbar.tsx  
+5) Snackbar.tsx  
 >• changed display location to top left so it doesn't cover up chat   
 
-6) components/Chat/ChatLogic.ts  
+6) ChatLogic.ts  
 >• Added this file that handles communication with the socket for chat messages  
 
-7) components/Chat/ChatPanel.tsx  
+7) ChatPanel.tsx  
 >• Added this component that is the main chat window  
 
 8) Dependencies Added
 >• buffer  
 >• crypto-js  
 >• http-status-codes  
+
+
+## Sequence Diagram for Text Messages
+![textchat_sequencediagram](https://github.com/yrrah/covey.town/blob/master/docs/textchat_sequencediagram.png)
+
+
+## Sequence Diagram for File Uploads
+![fileupload_sequencediagram](https://github.com/yrrah/covey.town/blob/master/docs/fileupload_sequencediagram.png)
+
+## State Diagram for Chat Feature
+![chatfeature_statediagram](https://github.com/yrrah/covey.town/blob/master/docs/chatfeature_statediagram.png)
 
