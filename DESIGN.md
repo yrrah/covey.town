@@ -1,7 +1,5 @@
 # DESIGN.md
 
-Note: The following code changes mentioned are the changes that were made to the files from the initial code base. These do not include code written in new files made by us.
-
 ## Backend
 
 1) CoveyTypes.ts
@@ -89,11 +87,21 @@ Note: The following code changes mentioned are the changes that were made to the
 7) ChatPanel.tsx  
 >• Added this component that is the main chat window  
 
-8) Dependencies Added
+8) ChatCrypto.ts
+>• Added this file that handles the encryption and decryption of private and proximity messages
+>• Makes use of AES encryption as the encryption algorithm
+>• For encryption, a random key is generated which is used to encrypt the message. The key is then concatenated with a key identifier, and the entity as a whole is encrypted using the receiving players player IDs. The encrypted entity is stored in the secretkey set of the payload.
+>• For decryption, the client uses their ID to decrypt the entities in the secretkey set from the payload. When the secretkey identifier is found, the secretkey from the decrypted entity is extracted and used to decrypt the message.
+>• This strategy of encryption, allows encryption of messages using multiple keys and decryption using any one of those keys.
+
+9) Dependencies Added
 >• buffer  
 >• crypto-js  
 >• http-status-codes  
 
+### Frontend Tests
+1) ChatCryptoTest.test.ts
+>• Verifies whether encryption and decryption works through test messages.
 
 ## Sequence Diagram for Text Messages
 ![textchat_sequencediagram](https://github.com/yrrah/covey.town/blob/master/docs/textchat_sequencediagram.png)
