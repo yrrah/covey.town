@@ -1,5 +1,7 @@
 # DESIGN.md
 
+Note: The following code changes mentioned are the changes that were made to the files from the initial code base. These do not include code written in new files made by us.
+
 ## Backend
 
 1) CoveyTypes.ts
@@ -49,8 +51,6 @@
 >• [Does not notify](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L115-L124) removed listener when a new message is sent
 >• [Emits 'newChatMessage'](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L195-L202) to the socekt when a player sends a message.
 >• [Forwards player messages](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/lib/CoveyTownController.test.ts#L266-L280) to subscribed listeners.
-
-2) CoveyTownController.test.ts
 >• [Dispatches message updates](https://github.com/yrrah/covey.town/blob/43d7756555c8b0f29858880664d4760e16afcbb6/services/roomService/src/client/CoveyTownsSocket.test.ts#L81-L96) to all the clients in the same town.
 
 2) CoveyTownsSocket.test.ts
