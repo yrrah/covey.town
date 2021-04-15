@@ -47,7 +47,7 @@ To create an account and configure your local environment:
 >3. On the cluster dashboard click 'CONNECT', then 'Connect your application'
 >4. Copy the connection uri into a new variable in your '.env' file
 >5. Insert the database username and password you chose in step 3.  
->e.g. "mongodb+srv://username:password@coveycluster.333xb.mongodb.net"
+>e.g. `"mongodb+srv://username:password@coveycluster.333xb.mongodb.net"`
 >
 >| Config Value            | Description                               |
 >| ----------------------- | ----------------------------------------- |
