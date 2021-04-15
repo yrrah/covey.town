@@ -8,19 +8,18 @@
 
 2. CoveyTownListener.ts
    > • Added a new function [‘onMessageSent’](https://github.com/yrrah/covey.town/blob/93ef479a0205c2c13bacedecc50bfdf4105cd172/services/roomService/src/types/CoveyTownListener.ts#L31-L34) to send messages to all listeners.
-
-> • The method takes in a ChatData type.
+   > • The method takes in a ChatData type.
 
 3. CoveyTownController.ts
    > • Added a new function ['sendChatMessage'](https://github.com/yrrah/covey.town/blob/93ef479a0205c2c13bacedecc50bfdf4105cd172/services/roomService/src/lib/CoveyTownController.ts#L125-L131) to send the message to all the listeners connected to the room.
 
-> • The method takes in a ChatData type that is passed to all the listeners connected to the room.
+   > • The method takes in a ChatData type that is passed to all the listeners connected to the room.
 
 4. CoveyTownRequestHandler.ts
 
-> • The [townSocketAdapter](https://github.com/yrrah/covey.town/blob/09865aef29a82139b19351ea53e1dd641278a7ba/services/roomService/src/requestHandlers/CoveyTownRequestHandlers.ts#L193-L195) is extended to allow the soket to emit the chat message to all other users.
+   > • The [townSocketAdapter](https://github.com/yrrah/covey.town/blob/09865aef29a82139b19351ea53e1dd641278a7ba/services/roomService/src/requestHandlers/CoveyTownRequestHandlers.ts#L193-L195) is extended to allow the soket to emit the chat message to all other users.
 
-> • On receiving the 'newChatMessage' by the socket, the controller [calls the sendChatMessage function](https://github.com/yrrah/covey.town/blob/09865aef29a82139b19351ea53e1dd641278a7ba/services/roomService/src/requestHandlers/CoveyTownRequestHandlers.ts#L239-L243) to send the chat data to all the listeners connected to that controller.
+   > • On receiving the 'newChatMessage' by the socket, the controller [calls the sendChatMessage function](https://github.com/yrrah/covey.town/blob/09865aef29a82139b19351ea53e1dd641278a7ba/services/roomService/src/requestHandlers/CoveyTownRequestHandlers.ts#L239-L243) to send the chat data to all the listeners connected to that controller.
 
 5. files.ts
 
@@ -100,15 +99,11 @@
    > • Added logic to auto scroll to the bottom when a new message is received  
 
 8. ChatCrypto.ts
-   > • Added this file that handles the encryption and decryption of private and proximity messages
-
-> • Makes use of AES encryption as the encryption algorithm
-
-> • For encryption, a random key is generated which is used to encrypt the message. The key is then concatenated with a key identifier, and the entity as a whole is encrypted using the receiving players player IDs. The encrypted entity is stored in the secretkey set of the payload.
-
-> • For decryption, the client uses their ID to decrypt the entities in the secretkey set from the payload. When the secretkey identifier is found, the secretkey from the decrypted entity is extracted and used to decrypt the message.
-
-> • This strategy of encryption, allows encryption of messages using multiple keys and decryption using any one of those keys.
+   > • Added this file that handles the encryption and decryption of private and proximity messages  
+   > • Makes use of AES encryption as the encryption algorithm  
+   > • For encryption, a random key is generated which is used to encrypt the message. The key is then concatenated with a key identifier, and the entity as a whole is encrypted using the receiving players player IDs. The encrypted entity is stored in the secretkey set of the payload  
+   > • For decryption, the client uses their ID to decrypt the entities in the secretkey set from the payload. When the secretkey identifier is found, the secretkey from the decrypted entity is extracted and used to decrypt the message  
+   > • This strategy of encryption, allows encryption of messages using multiple keys and decryption using any one of those keys  
 
 9. Dependencies Added
    > • buffer  
