@@ -86,6 +86,8 @@
 
 7) ChatPanel.tsx  
 >• Added this component that is the main chat window  
+>• Added a saveChat function that allows the user to save all messages and the people who sent them in the existing chat window into a textfile downloaded to their computer
+>• Added logic to pause and unpause game whenever the Chat Input command is toggled in order to avoid player movement while typing out messages
 
 8) ChatCrypto.ts
 >• Added this file that handles the encryption and decryption of private and proximity messages
